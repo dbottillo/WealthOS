@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-wealthos}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      JDBC_DATABASE_URL: ${JDBC_DATABASE_URL:-jdbc:postgresql://db:5432/wealthos}
+      JDBC_DATABASE_USER: ${JDBC_DATABASE_USER:-postgres}
+      JDBC_DATABASE_PASSWORD: ${JDBC_DATABASE_PASSWORD:-password}
+    depends_on:
+      - db
+
+volumes:
+  db-data:

@@ -28,7 +28,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [x] **KMP Project Initialization:** Set up the multiplatform project structure (`common`, `composeApp`, `server`).
 - [x] **Shared Data Models:** Implement the `SpendingPeriod` model in the `common` module.
 - [x] **Backend Setup (Ktor):** Implement a basic Ktor server with database connectivity using Exposed.
-- [ ] **Dockerization:** Create a `Dockerfile` and `docker-compose.yaml` for the backend and database.
+- [x] **Dockerization:** Create a `Dockerfile` and `docker-compose.yaml` for the backend and database.
 - [ ] **Client Foundations:** Set up basic navigation and a shared API client.
 
 ### Phase 2: Feature - Visualize Outgoings (Web Entry & Notion Migration)
