@@ -1,11 +1,26 @@
 plugins {
+    id("application")
     alias(libs.plugins.jvm)
-    alias(libs.plugins.ktor)
     alias(libs.plugins.kotlinSerialization)
 }
 
 application {
     mainClass.set("com.wealthos.server.ApplicationKt")
+}
+
+kotlin {
+    jvmToolchain(25)
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 dependencies {
