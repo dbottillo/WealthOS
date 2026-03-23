@@ -1,0 +1,25 @@
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+# IDEs
+.idea/
+*.iml
+*.iws
+.project
+.settings/
+.classpath
+.factorypath
+
+# OS
+.DS_Store
+
+# Local configuration
+local.properties
+
+# Log files
+*.log
+
+# Docker
+.docker/
