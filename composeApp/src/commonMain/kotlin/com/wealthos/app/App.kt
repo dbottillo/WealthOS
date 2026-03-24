@@ -5,6 +5,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -14,13 +16,15 @@ import com.wealthos.common.SpendingPeriodViewModel
 import com.hoc081098.kmp.viewmodel.koin.compose.koinKmpViewModel
 
 enum class Screen {
-    List, Add
+    List, Add, Analytics
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.List) }
     val viewModel: SpendingPeriodViewModel = koinKmpViewModel()
+    val state by viewModel.state.collectAsState()
 
     MaterialTheme {
         Surface(
@@ -30,12 +34,29 @@ fun App() {
             when (currentScreen) {
                 Screen.List -> PeriodListScreen(
                     viewModel = viewModel,
-                    onNavigateToAdd = { currentScreen = Screen.Add }
+                    onNavigateToAdd = { currentScreen = Screen.Add },
+                    onNavigateToAnalytics = { currentScreen = Screen.Analytics }
                 )
                 Screen.Add -> AddPeriodScreen(
                     viewModel = viewModel,
                     onBack = { currentScreen = Screen.List }
                 )
+                Screen.Analytics -> Scaffold(
+                    topBar = {
+                        CenterAlignedTopAppBar(
+                            title = { Text("Analytics") },
+                            navigationIcon = {
+                                IconButton(onClick = { currentScreen = Screen.List }) {
+                                    Icon(Icons.Default.List, contentDescription = "List")
+                                }
+                            }
+                        )
+                    }
+                ) { padding ->
+                    Box(modifier = Modifier.padding(padding)) {
+                        AnalyticsDashboard(state.periods)
+                    }
+                }
             }
         }
     }
@@ -45,7 +66,8 @@ fun App() {
 @Composable
 fun PeriodListScreen(
     viewModel: SpendingPeriodViewModel,
-    onNavigateToAdd: () -> Unit
+    onNavigateToAdd: () -> Unit,
+    onNavigateToAnalytics: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -53,6 +75,11 @@ fun PeriodListScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("WealthOS") },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateToAnalytics) {
+                        Icon(Icons.Default.Settings, contentDescription = "Analytics")
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.triggerMigration() }) {
                         Text("Migrate", style = MaterialTheme.typography.labelSmall)
