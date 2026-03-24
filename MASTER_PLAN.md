@@ -1,4 +1,4 @@
-# WealthOS Master Plan
+# WealthOS Master Plan (Expanded)
 
 WealthOS is a personal wealth management tool designed to help users visualize and manage their finances based on a **Period-based Ledger** model. It uses a **Full Kotlin Stack** with **Kotlin Multiplatform (KMP)** to share logic across all platforms.
 
@@ -25,47 +25,65 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [x] **Database Schema Design:** Mapped 30+ financial categories to a relational structure.
 
 ### Phase 1: Project Setup & Foundation
-- [x] **KMP Project Initialization:** Set up the multiplatform project structure (`common`, `composeApp`, `server`).
-- [x] **Shared Data Models:** Implement the `SpendingPeriod` model in the `common` module.
-- [x] **Backend Setup (Ktor):** Implement a basic Ktor server with database connectivity using Exposed.
-- [x] **Dockerization:** Create a `Dockerfile` and `docker-compose.yaml` for the backend and database.
-- [ ] **Client Foundations:** Set up basic navigation and a shared API client.
+- [x] **KMP Project Initialization:** Set up the multiplatform project structure (`common`, `composeApp`, `server`). Configured Gradle version catalogs and applied required Kotlin/Compose plugins.
+- [x] **Shared Data Models:** Implement the `SpendingPeriod` model in the `common` module. Annotated with `@Serializable` and included backend-calculated fields as properties.
+- [x] **Backend Setup (Ktor):** Implement a basic Ktor server using Netty, configured Exposed ORM with PostgreSQL, setup a `/health` endpoint, and enforce environmental variable-based configuration.
+- [x] **Dockerization:** Create a multi-stage `Dockerfile` and `docker-compose.yaml` to orchestrate the Ktor application and PostgreSQL database with persistent volumes.
+- [ ] **Client Foundations:** 
+    - Implement a shared HTTP client using `Ktor Client` in the `common` module for API consumption.
+    - Set up a Dependency Injection framework (e.g., Koin) for the KMP modules.
+    - Establish a cross-platform architectural pattern using standard **ViewModels** with **StateFlow** for state management.
+    - Configure Multiplatform Navigation (e.g., Jetbrains Navigation Compose or Voyager).
 
 ### Phase 2: Feature - Visualize Outgoings (Web Entry & Notion Migration)
-- [ ] **Backend:**
-    - [ ] REST API for CRUD operations on `SpendingPeriod`.
-    - [ ] **Notion Data Migration:** Develop a service to pull historical data (2013-present) from Notion.
-    - [ ] **Calculation Engine:** Implement 50/30/20 formulas (Needs/Wants/Savings sums and percentages).
-- [ ] **Frontend (Web):**
-    - [ ] **Fast Data Entry:** Optimized keyboard-friendly interface for manual entry of period totals.
-    - [ ] **Tabular View:** Spreadsheet-like view for reviewing and editing periods.
-    - [ ] **Analytics Dashboard:** Annual summaries, median spending per category, and monthly trends.
+- [ ] **Backend (API & Logic):**
+    - [ ] **REST API endpoints:** Implement `GET /api/periods`, `POST /api/periods`, `PUT /api/periods/{id}`, and `DELETE /api/periods/{id}` using Ktor Routing.
+    - [ ] **DTO Mapping:** Create dedicated API response DTOs that serialize both database entities and calculated fields (e.g., balance, percentages).
+    - [ ] **Calculation Engine:** Build the logic mapping specific spending categories to 50/30/20 buckets.
+    - [ ] **Notion Data Migration:** Develop an offline or admin-triggered service to interact with the Notion API, map historical data into `SpendingPeriod` entities, and seed the PostgreSQL database.
+- [ ] **Frontend (Shared/Web):**
+    - [ ] **State Management:** Implement `PeriodRepository` and `PeriodViewModel` using Flow to fetch and cache data.
+    - [ ] **Tabular View:** Build a Compose Material 3 spreadsheet-like component for viewing historical records.
+    - [ ] **Fast Data Entry UI:** Design an optimized, keyboard-navigable form for manually adding/editing a `SpendingPeriod`.
+    - [ ] **Analytics Dashboard:** Integrate or build basic charting components (using Compose Canvas) for annual summaries and category trends.
 - [ ] **Frontend (Android):**
-    - [ ] **Read-Only Dashboard:** High-level overview of monthly spending trends and category breakdowns.
+    - [ ] **App Entry Point:** Configure Android `MainActivity` and tie it into the shared compose UI.
+    - [ ] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
 
 ### Phase 3: Refinement & Local Deployment
-- [ ] **Local Server Deployment:** Deploy Docker containers to the home server.
-- [ ] **Tailscale Integration:** Configure for secure remote access.
-- [ ] **UI/UX Polishing:** Refine design and animations for the initial features.
-- [ ] **Testing:** Implement unit and integration tests.
+- [ ] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** or **Liquibase** for production readiness.
+- [ ] **Testing:** 
+    - Implement `Ktor Server` Application tests for the API endpoints.
+    - Write unit tests for the 50/30/20 Calculation Engine and DTO mappings in `common`.
+- [ ] **Local Server Deployment:** Refine the Docker setup, potentially introducing an Nginx/Caddy reverse proxy, and deploy to the home server.
+- [ ] **Tailscale Integration:** Expose the internal Docker network securely using a Tailscale subnet router or direct container integration.
+- [ ] **CI/CD:** Setup basic GitHub Actions workflows to build the KMP project and run tests on push.
 
 ### Phase 4: Feature - Emergency Budget
-- [ ] Shared logic for calculating target funds based on historical `SpendingPeriod` data.
-- [ ] Progress tracking UI on Web and Android.
+- [ ] **Shared Logic:** Introduce a calculation module in `common` that analyzes 3-6 months of historical `totalNeeds` to determine target emergency fund requirements.
+- [ ] **Backend:** Expose `GET /api/emergency-fund` to deliver progress metrics.
+- [ ] **UI:** Build a gauge/progress tracker component on Web and Android to visualize current savings against the dynamically calculated target.
 
 ### Phase 5: Feature - Bills & Subscriptions
-- [ ] Management of recurring payments and upcoming due dates.
+- [ ] **Data Model:** Add `Subscription` and `RecurringBill` entities.
+- [ ] **Backend:** Implement scheduling logic or date-checks to flag upcoming payments within the current `SpendingPeriod`.
+- [ ] **UI:** Create a calendar or timeline view showing due dates and estimated remaining discretionary income.
 
 ### Phase 6: Feature - Investments Overview
-- [ ] Manual tracking of investment portfolios and performance charts.
+- [ ] **Data Model:** Create schemas for portfolios, asset allocations, and historical performance snapshots.
+- [ ] **Backend:** Endpoints to manually record end-of-month portfolio values.
+- [ ] **UI:** Line charts mapping total net worth growth over time across both Web and Android.
 
 ### Phase 7: Feature - Pension Management
-- [ ] Monitoring pension growth and retirement planning tools.
+- [ ] **Data Model:** Add `PensionContribution` and `RetirementGoal` entities.
+- [ ] **Calculations:** Shared projections based on current contributions, expected growth rates, and retirement age.
+- [ ] **UI:** Retirement scenario sliders and calculators.
 
 ### Phase 8: Feature - Salary Sorter
-- [ ] Rule engine for allocating income to different spending/savings buckets.
+- [ ] **Rule Engine:** Define configurable rules on the backend (e.g., "Send X% to Savings, Y% to specific Monzo pot").
+- [ ] **UI:** Interactive flow to review and execute (or just copy instructions for) payday allocations.
 
 ## Next Steps
-1.  **Scaffold Project:** Create the KMP project structure.
-2.  **Initialize Database:** Set up the PostgreSQL schema based on `SCHEMA_MAPPING.md`.
-3.  **Run Health Check:** Verify the Ktor server and API client are communicating.
+1.  **Client Foundations:** Set up Ktor Client, Dependency Injection (Koin), and a basic UI architectural pattern (ViewModel + StateFlow) in the shared module.
+2.  **API Construction:** Implement the CRUD endpoints for `SpendingPeriod` in the Ktor server.
+3.  **UI Scaffold:** Create the first screen on Android/Web showing a list of periods retrieved from the local backend.
