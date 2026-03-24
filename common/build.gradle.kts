@@ -5,6 +5,9 @@ plugins {
 
 kotlin {
     jvm()
+    wasmJs {
+        browser()
+    }
     
     sourceSets {
         val commonMain by getting {
@@ -12,8 +15,10 @@ kotlin {
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.koin.core)
-                api(libs.kmp.observableviewmodel)
+                api(libs.kmp.viewmodel)
+                api(libs.kmp.viewmodel.koin)
                 implementation(libs.ktor.client.core)
+
                 implementation(libs.ktor.client.content.negotiation)
                 implementation(libs.ktor.serialization.json)
             }

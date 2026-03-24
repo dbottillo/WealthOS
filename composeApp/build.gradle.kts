@@ -15,6 +15,11 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":common"))
+                implementation(libs.koin.core)
+                implementation(libs.koin.compose)
+                implementation(libs.kmp.viewmodel.compose)
+                implementation(libs.kmp.viewmodel.koin.compose)
+                implementation(libs.kotlinx.datetime)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)

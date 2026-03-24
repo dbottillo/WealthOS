@@ -1,7 +1,6 @@
 package com.wealthos.common
 
-import com.rickclephas.kmp.observableviewmodel.ViewModel
-import com.rickclephas.kmp.observableviewmodel.coroutineScope
+import com.hoc081098.kmp.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +22,7 @@ class SpendingPeriodViewModel(
     val state: StateFlow<SpendingPeriodState> = _state.asStateFlow()
 
     init {
-        viewModelScope.coroutineScope.launch {
+        viewModelScope.launch {
             repository.periods.collect { periods ->
                 _state.value = _state.value.copy(periods = periods)
             }
@@ -32,7 +31,7 @@ class SpendingPeriodViewModel(
     }
 
     fun loadPeriods() {
-        viewModelScope.coroutineScope.launch {
+        viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
                 repository.refresh()
@@ -44,7 +43,7 @@ class SpendingPeriodViewModel(
     }
 
     fun checkHealth() {
-        viewModelScope.coroutineScope.launch {
+        viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
                 val health = client.getHealth()
@@ -62,7 +61,7 @@ class SpendingPeriodViewModel(
     }
 
     fun triggerMigration() {
-        viewModelScope.coroutineScope.launch {
+        viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             try {
                 repository.triggerMigration()

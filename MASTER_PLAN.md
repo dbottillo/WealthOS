@@ -43,7 +43,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] **Notion Data Migration:** Develop an offline or admin-triggered service to interact with the Notion API, map historical data into `SpendingPeriod` entities, and seed the PostgreSQL database.
 - [ ] **Frontend (Shared/Web):**
     - [x] **State Management:** Implement `PeriodRepository` and `PeriodViewModel` using Flow to fetch and cache data.
-    - [ ] **Tabular View:** Build a Compose Material 3 spreadsheet-like component for viewing historical records.
+    - [x] **Tabular View:** Build a Compose Material 3 spreadsheet-like component for viewing historical records.
     - [ ] **Fast Data Entry UI:** Design an optimized, keyboard-navigable form for manually adding/editing a `SpendingPeriod`.
     - [ ] **Analytics Dashboard:** Integrate or build basic charting components (using Compose Canvas) for annual summaries and category trends.
 - [ ] **Frontend (Android):**
