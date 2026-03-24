@@ -29,7 +29,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [x] **Shared Data Models:** Implement the `SpendingPeriod` model in the `common` module. Annotated with `@Serializable` and included backend-calculated fields as properties.
 - [x] **Backend Setup (Ktor):** Implement a basic Ktor server using Netty, configured Exposed ORM with PostgreSQL, setup a `/health` endpoint, and enforce environmental variable-based configuration.
 - [x] **Dockerization:** Create a multi-stage `Dockerfile` and `docker-compose.yaml` to orchestrate the Ktor application and PostgreSQL database with persistent volumes.
-- [ ] **Client Foundations:** 
+- [x] **Client Foundations:** 
     - Implement a shared HTTP client using `Ktor Client` in the `common` module for API consumption.
     - Set up a Dependency Injection framework (e.g., Koin) for the KMP modules.
     - Establish a cross-platform architectural pattern using standard **ViewModels** with **StateFlow** for state management.
