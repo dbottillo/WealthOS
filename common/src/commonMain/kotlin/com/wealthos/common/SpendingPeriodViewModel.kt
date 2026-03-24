@@ -1,7 +1,7 @@
 package com.wealthos.common
 
-import com.rickclephas.kmp.viewmodel.KMPViewModel
-import com.rickclephas.kmp.viewmodel.coroutineScope
+import com.rickclephas.kmp.observableviewmodel.ViewModel
+import com.rickclephas.kmp.observableviewmodel.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +14,7 @@ data class SpendingPeriodState(
 
 class SpendingPeriodViewModel(
     private val client: WealthOsClient
-) : KMPViewModel() {
+) : ViewModel() {
     
     private val _state = MutableStateFlow(SpendingPeriodState())
     val state: StateFlow<SpendingPeriodState> = _state.asStateFlow()

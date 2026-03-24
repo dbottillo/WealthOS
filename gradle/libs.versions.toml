@@ -9,7 +9,7 @@ kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.8.0"
 logback = "1.5.16"
 koin = "4.0.0"
-kmp-viewmodel = "1.0.0-alpha28"
+kmp-observableviewmodel = "1.0.2"
 ktor-client = "3.1.0"
 
 [libraries]
@@ -18,7 +18,7 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
-kmp-viewmodel = { module = "com.rickclephas.kmp:kmp-viewmodel", version.ref = "kmp-viewmodel" }
+kmp-observableviewmodel = { module = "com.rickclephas.kmp:kmp-observableviewmodel-core", version.ref = "kmp-observableviewmodel" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor-client" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor-client" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor-client" }

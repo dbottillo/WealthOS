@@ -37,7 +37,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 
 ### Phase 2: Feature - Visualize Outgoings (Web Entry & Notion Migration)
 - [ ] **Backend (API & Logic):**
-    - [ ] **REST API endpoints:** Implement `GET /api/periods`, `POST /api/periods`, `PUT /api/periods/{id}`, and `DELETE /api/periods/{id}` using Ktor Routing.
+    - [x] **REST API endpoints:** Implement `GET /api/periods`, `POST /api/periods`, `PUT /api/periods/{id}`, and `DELETE /api/periods/{id}` using Ktor Routing.
     - [ ] **DTO Mapping:** Create dedicated API response DTOs that serialize both database entities and calculated fields (e.g., balance, percentages).
     - [ ] **Calculation Engine:** Build the logic mapping specific spending categories to 50/30/20 buckets.
     - [ ] **Notion Data Migration:** Develop an offline or admin-triggered service to interact with the Notion API, map historical data into `SpendingPeriod` entities, and seed the PostgreSQL database.
