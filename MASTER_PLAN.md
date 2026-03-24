@@ -46,9 +46,9 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] **Tabular View:** Build a Compose Material 3 spreadsheet-like component for viewing historical records.
     - [x] **Fast Data Entry UI:** Design an optimized, keyboard-navigable form for manually adding/editing a `SpendingPeriod`.
     - [x] **Analytics Dashboard:** Integrate or build basic charting components (using Compose Canvas) for annual summaries and category trends.
-- [ ] **Frontend (Android):**
-    - [ ] **App Entry Point:** Configure Android `MainActivity` and tie it into the shared compose UI.
-    - [ ] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
+- [x] **Frontend (Android):**
+    - [x] **App Entry Point:** Configure Android `MainActivity` and tie it into the shared compose UI.
+    - [x] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
 
 ### Phase 3: Refinement & Local Deployment
 - [ ] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** or **Liquibase** for production readiness.
