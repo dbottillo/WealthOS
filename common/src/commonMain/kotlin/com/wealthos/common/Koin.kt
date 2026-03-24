@@ -13,5 +13,6 @@ fun initKoin(baseUrl: String, appDeclaration: KoinAppDeclaration = {}) =
 
 fun commonModule(baseUrl: String) = module {
     single { WealthOsClient(baseUrl) }
-    factory { SpendingPeriodViewModel(get()) }
+    single { PeriodRepository(get()) }
+    factory { SpendingPeriodViewModel(get(), get()) }
 }
