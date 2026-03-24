@@ -24,24 +24,24 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [x] **Data Model Design:** Defined the `SpendingPeriod` model to match the Notion ledger style.
 - [x] **Database Schema Design:** Mapped 30+ financial categories to a relational structure.
 
-### Phase 1: Project Setup & Foundation
+### Phase 1: Project Setup & Foundation (COMPLETED)
 - [x] **KMP Project Initialization:** Set up the multiplatform project structure (`common`, `composeApp`, `server`). Configured Gradle version catalogs and applied required Kotlin/Compose plugins.
 - [x] **Shared Data Models:** Implement the `SpendingPeriod` model in the `common` module. Annotated with `@Serializable` and included backend-calculated fields as properties.
 - [x] **Backend Setup (Ktor):** Implement a basic Ktor server using Netty, configured Exposed ORM with PostgreSQL, setup a `/health` endpoint, and enforce environmental variable-based configuration.
 - [x] **Dockerization:** Create a multi-stage `Dockerfile` and `docker-compose.yaml` to orchestrate the Ktor application and PostgreSQL database with persistent volumes.
 - [x] **Client Foundations:** 
-    - Implement a shared HTTP client using `Ktor Client` in the `common` module for API consumption.
-    - Set up a Dependency Injection framework (e.g., Koin) for the KMP modules.
-    - Establish a cross-platform architectural pattern using standard **ViewModels** with **StateFlow** for state management.
-    - Configure Multiplatform Navigation (e.g., Jetbrains Navigation Compose or Voyager).
+    - [x] Implement a shared HTTP client using `Ktor Client` in the `common` module for API consumption.
+    - [x] Set up a Dependency Injection framework (e.g., Koin) for the KMP modules.
+    - [x] Establish a cross-platform architectural pattern using standard **ViewModels** with **StateFlow** for state management.
+    - [ ] Configure Multiplatform Navigation (e.g., Jetbrains Navigation Compose or Voyager).
 
-### Phase 2: Feature - Visualize Outgoings (Web Entry & Notion Migration)
-- [ ] **Backend (API & Logic):**
+### Phase 2: Feature - Visualize Outgoings (COMPLETED)
+- [x] **Backend (API & Logic):**
     - [x] **REST API endpoints:** Implement `GET /api/periods`, `POST /api/periods`, `PUT /api/periods/{id}`, and `DELETE /api/periods/{id}` using Ktor Routing.
     - [x] **DTO Mapping:** Create dedicated API response DTOs that serialize both database entities and calculated fields (e.g., balance, percentages).
     - [x] **Calculation Engine:** Build the logic mapping specific spending categories to 50/30/20 buckets.
     - [x] **Notion Data Migration:** Develop an offline or admin-triggered service to interact with the Notion API, map historical data into `SpendingPeriod` entities, and seed the PostgreSQL database.
-- [ ] **Frontend (Shared/Web):**
+- [x] **Frontend (Shared/Web):**
     - [x] **State Management:** Implement `PeriodRepository` and `PeriodViewModel` using Flow to fetch and cache data.
     - [x] **Tabular View:** Build a Compose Material 3 spreadsheet-like component for viewing historical records.
     - [x] **Fast Data Entry UI:** Design an optimized, keyboard-navigable form for manually adding/editing a `SpendingPeriod`.
@@ -50,7 +50,14 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] **App Entry Point:** Configure Android `MainActivity` and tie it into the shared compose UI.
     - [x] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
 
-### Phase 3: Refinement & Local Deployment
+### Phase 3: Local Validation & Manual Testing
+- [ ] **Database Spining:** Run PostgreSQL via Docker Compose locally and verify connectivity.
+- [ ] **Backend Launch:** Start the Ktor server locally and test `/health` and `/api/periods` via `curl` or Postman.
+- [ ] **Data Migration Run:** Trigger the `/api/migrate` endpoint manually to seed the local database with Notion data.
+- [ ] **Web App Launch:** Run the JVM/Desktop version of the app and verify it displays the imported data.
+- [ ] **Android App Launch:** Run the Android app on an emulator/device and verify connectivity to the local backend (using `10.0.2.2`).
+
+### Phase 4: Refinement & Local Deployment
 - [ ] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** or **Liquibase** for production readiness.
 - [ ] **Testing:** 
     - Implement `Ktor Server` Application tests for the API endpoints.
@@ -59,31 +66,31 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [ ] **Tailscale Integration:** Expose the internal Docker network securely using a Tailscale subnet router or direct container integration.
 - [ ] **CI/CD:** Setup basic GitHub Actions workflows to build the KMP project and run tests on push.
 
-### Phase 4: Feature - Emergency Budget
+### Phase 5: Feature - Emergency Budget
 - [ ] **Shared Logic:** Introduce a calculation module in `common` that analyzes 3-6 months of historical `totalNeeds` to determine target emergency fund requirements.
 - [ ] **Backend:** Expose `GET /api/emergency-fund` to deliver progress metrics.
 - [ ] **UI:** Build a gauge/progress tracker component on Web and Android to visualize current savings against the dynamically calculated target.
 
-### Phase 5: Feature - Bills & Subscriptions
+### Phase 6: Feature - Bills & Subscriptions
 - [ ] **Data Model:** Add `Subscription` and `RecurringBill` entities.
 - [ ] **Backend:** Implement scheduling logic or date-checks to flag upcoming payments within the current `SpendingPeriod`.
 - [ ] **UI:** Create a calendar or timeline view showing due dates and estimated remaining discretionary income.
 
-### Phase 6: Feature - Investments Overview
+### Phase 7: Feature - Investments Overview
 - [ ] **Data Model:** Create schemas for portfolios, asset allocations, and historical performance snapshots.
 - [ ] **Backend:** Endpoints to manually record end-of-month portfolio values.
 - [ ] **UI:** Line charts mapping total net worth growth over time across both Web and Android.
 
-### Phase 7: Feature - Pension Management
+### Phase 8: Feature - Pension Management
 - [ ] **Data Model:** Add `PensionContribution` and `RetirementGoal` entities.
 - [ ] **Calculations:** Shared projections based on current contributions, expected growth rates, and retirement age.
 - [ ] **UI:** Retirement scenario sliders and calculators.
 
-### Phase 8: Feature - Salary Sorter
+### Phase 9: Feature - Salary Sorter
 - [ ] **Rule Engine:** Define configurable rules on the backend (e.g., "Send X% to Savings, Y% to specific Monzo pot").
 - [ ] **UI:** Interactive flow to review and execute (or just copy instructions for) payday allocations.
 
 ## Next Steps
-1.  **Client Foundations:** Set up Ktor Client, Dependency Injection (Koin), and a basic UI architectural pattern (ViewModel + StateFlow) in the shared module.
-2.  **API Construction:** Implement the CRUD endpoints for `SpendingPeriod` in the Ktor server.
-3.  **UI Scaffold:** Create the first screen on Android/Web showing a list of periods retrieved from the local backend.
+1.  **Local Testing:** Spin up the Docker database and run the Ktor server to verify the API.
+2.  **Migration:** Run the Notion migration locally to seed the database.
+3.  **App Verification:** Launch the Desktop and Android apps to confirm they can fetch and display the data.
