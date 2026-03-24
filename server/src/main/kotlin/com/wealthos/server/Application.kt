@@ -8,6 +8,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import com.wealthos.common.toDto
 
 fun main() {
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
@@ -32,8 +33,9 @@ fun Application.module() {
         }
 
         route("/api/periods") {
+
             get {
-                call.respond(SpendingPeriodRepository.findAll())
+                call.respond(SpendingPeriodRepository.findAll().map { it.toDto() })
             }
             get("/{id}") {
                 val id = call.parameters["id"]?.toIntOrNull()
@@ -45,7 +47,7 @@ fun Application.module() {
                 if (period == null) {
                     call.respond(io.ktor.http.HttpStatusCode.NotFound)
                 } else {
-                    call.respond(period)
+                    call.respond(period.toDto())
                 }
             }
             post {
