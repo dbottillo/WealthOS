@@ -71,4 +71,16 @@ class SpendingPeriodViewModel(
             }
         }
     }
+
+    fun savePeriod(period: SpendingPeriod) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+            try {
+                repository.addPeriod(period)
+                _state.value = _state.value.copy(isLoading = false, error = null)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
 }
