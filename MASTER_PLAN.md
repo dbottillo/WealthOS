@@ -51,11 +51,11 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
 
 ### Phase 3: Local Validation & Manual Testing
-- [ ] **Database Spining:** Run PostgreSQL via Docker Compose locally and verify connectivity.
-- [ ] **Backend Launch:** Start the Ktor server locally and test `/health` and `/api/periods` via `curl` or Postman.
-- [ ] **Data Migration Run:** Trigger the `/api/migrate` endpoint manually to seed the local database with Notion data.
-- [ ] **Web App Launch:** Run the JVM/Desktop version of the app and verify it displays the imported data.
-- [ ] **Android App Launch:** Run the Android app on an emulator/device and verify connectivity to the local backend (using `10.0.2.2`).
+- [x] **Database Spining:** Run PostgreSQL locally and verify connectivity. (Installed natively via Homebrew)
+- [x] **Backend Launch:** Start the Ktor server locally and test `/health` and `/api/periods` via `curl` or Postman.
+- [x] **Data Migration Run:** Trigger the `/api/migrate` endpoint manually to seed the local database with Notion data.
+- [x] **Web App Launch:** Run the Wasm version of the app in the browser and verify it displays the imported data.
+- [ ] **UI Polish & Iteration:** Refine the appearance and layout of the web application based on user feedback.
 
 ### Phase 4: Refinement & Local Deployment
 - [ ] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** or **Liquibase** for production readiness.
@@ -91,6 +91,5 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [ ] **UI:** Interactive flow to review and execute (or just copy instructions for) payday allocations.
 
 ## Next Steps
-1.  **Local Testing:** Spin up the Docker database and run the Ktor server to verify the API.
-2.  **Migration:** Run the Notion migration locally to seed the database.
-3.  **App Verification:** Launch the Desktop and Android apps to confirm they can fetch and display the data.
+1.  **UI Iteration:** Improve the layout, typography, and spacing of the Web App.
+2.  **Android App Launch:** Run the Android app on an emulator/device and verify connectivity to the local backend (using `10.0.2.2`).

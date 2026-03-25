@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.wealthos.common.SpendingPeriodDto
 import com.wealthos.common.SpendingPeriodViewModel
-import com.hoc081098.kmp.viewmodel.koin.compose.koinKmpViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 enum class Screen {
     List, Add, Analytics
@@ -23,7 +23,7 @@ enum class Screen {
 @Composable
 fun App() {
     var currentScreen by remember { mutableStateOf(Screen.List) }
-    val viewModel: SpendingPeriodViewModel = koinKmpViewModel()
+    val viewModel: SpendingPeriodViewModel = koinViewModel()
     val state by viewModel.state.collectAsState()
 
     MaterialTheme {
@@ -107,7 +107,7 @@ fun PeriodListScreen(
             }
 
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(state.periods) { period ->
+                items(state.periods, key = { it.name + it.startDate.toString() }) { period ->
                     PeriodRow(period)
                     HorizontalDivider()
                 }

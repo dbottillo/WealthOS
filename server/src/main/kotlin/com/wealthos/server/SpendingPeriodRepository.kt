@@ -45,7 +45,9 @@ object SpendingPeriodRepository {
     )
 
     fun findAll(): List<SpendingPeriod> = transaction {
-        SpendingPeriods.selectAll().map { it.toSpendingPeriod() }
+        SpendingPeriods.selectAll()
+            .orderBy(SpendingPeriods.startDate to SortOrder.DESC)
+            .map { it.toSpendingPeriod() }
     }
 
     fun findById(id: Int): SpendingPeriod? = transaction {

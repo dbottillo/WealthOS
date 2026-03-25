@@ -12,6 +12,7 @@ kotlin {
         }
     }
     jvm()
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         binaries.executable()
@@ -23,8 +24,10 @@ kotlin {
                 implementation(project(":common"))
                 implementation(libs.koin.core)
                 implementation(libs.koin.compose)
-                implementation(libs.kmp.viewmodel.compose)
-                implementation(libs.kmp.viewmodel.koin.compose)
+                implementation(libs.koin.compose.viewmodel)
+                implementation(libs.lifecycle.viewmodel)
+                implementation(libs.lifecycle.runtime.compose)
+                implementation(libs.lifecycle.viewmodel.compose)
                 implementation(libs.kotlinx.datetime)
                 implementation(compose.runtime)
                 implementation(compose.foundation)

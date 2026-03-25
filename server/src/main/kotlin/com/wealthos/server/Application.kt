@@ -5,6 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -16,6 +17,15 @@ fun main() {
 }
 
 fun Application.module() {
+    install(CORS) {
+        allowHost("localhost:8081")
+        allowMethod(io.ktor.http.HttpMethod.Options)
+        allowMethod(io.ktor.http.HttpMethod.Put)
+        allowMethod(io.ktor.http.HttpMethod.Delete)
+        allowHeader(io.ktor.http.HttpHeaders.ContentType)
+        allowHeader(io.ktor.http.HttpHeaders.Authorization)
+    }
+
     // Database initialization (will fail if DB is not running, which is fine for now)
     try {
         DatabaseFactory.connectAndMigrate()
@@ -33,7 +43,6 @@ fun Application.module() {
         }
 
         route("/api/periods") {
-
             get {
                 call.respond(SpendingPeriodRepository.findAll().map { it.toDto() })
             }
