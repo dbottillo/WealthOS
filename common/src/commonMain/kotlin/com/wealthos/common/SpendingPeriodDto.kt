@@ -65,9 +65,9 @@ data class SpendingPeriodDto(
 fun SpendingPeriod.toDto(): SpendingPeriodDto {
     val balanceValue = balance
     val statusValue = when {
-        balanceValue < -1000 -> "🔴"
-        balanceValue < 0 -> "🔴"
-        else -> "🟢"
+        balanceValue < 0 -> "CRITICAL"
+        balanceValue < 500 -> "WARNING"
+        else -> "HEALTHY"
     }
     
     return SpendingPeriodDto(
