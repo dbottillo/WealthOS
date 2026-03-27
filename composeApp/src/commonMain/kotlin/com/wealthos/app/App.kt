@@ -5,16 +5,22 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.wealthos.common.SpendingPeriodDto
@@ -95,11 +101,6 @@ fun PeriodListScreen(
                         IconButton(onClick = onNavigateToAnalytics) {
                             Icon(Icons.Default.Settings, contentDescription = "Analytics")
                         }
-                    },
-                    actions = {
-                        TextButton(onClick = { viewModel.triggerMigration() }) {
-                            Text("Sync Notion", style = MaterialTheme.typography.labelLarge)
-                        }
                     }
                 )
             },
@@ -116,13 +117,13 @@ fun PeriodListScreen(
                     .padding(padding)
                     .fillMaxSize()
             ) {
-                // Left Column: 6-month Average Pie Chart
-                Box(
+                // Left Column: 6-month Average Pie Chart & Actions
+                Column(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
                         .padding(horizontal = 32.dp, vertical = 24.dp),
-                    contentAlignment = Alignment.TopCenter
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
@@ -130,6 +131,21 @@ fun PeriodListScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         AveragePieChartSection(state.periods)
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    TextButton(
+                        onClick = { viewModel.triggerMigration() },
+                        enabled = !state.isLoading
+                    ) {
+                        if (state.isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(14.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Sync Notion", style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
@@ -157,12 +173,24 @@ fun PeriodListScreen(
                         contentPadding = PaddingValues(bottom = 80.dp),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(state.periods, key = { it.name + it.startDate.toString() }) { period ->
-                            PeriodRow(period, onClick = { selectedPeriod = period })
+                        items(state.periods, key = { it.id ?: (it.name + it.startDate.toString()) }) { period ->
+                            PeriodRow(period, onClick = { 
+                                selectedPeriod = period
+                            })
                         }
                     }
                 }
             }
+        }
+
+        // Overlay to capture clicks outside the panel
+        if (selectedPeriod != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.1f))
+                    .clickable { selectedPeriod = null }
+            )
         }
 
         // Side Detail Panel
@@ -170,7 +198,7 @@ fun PeriodListScreen(
             visible = selectedPeriod != null,
             enter = slideInHorizontally(initialOffsetX = { it }),
             exit = slideOutHorizontally(targetOffsetX = { it }),
-            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(400.dp)
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight().width(450.dp)
         ) {
             selectedPeriod?.let { period ->
                 PeriodDetailPanel(period, onClose = { selectedPeriod = null })
@@ -181,8 +209,24 @@ fun PeriodListScreen(
 
 @Composable
 fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
+    val focusRequester = remember { FocusRequester() }
+    
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
+
     Card(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .focusRequester(focusRequester)
+            .focusable()
+            .onKeyEvent { keyEvent ->
+                if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) {
+                    onClose()
+                    true
+                } else false
+            }
+            .clickable(enabled = false) {},
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
         shape = androidx.compose.ui.graphics.RectangleShape
@@ -190,10 +234,10 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(horizontal = 24.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -207,23 +251,63 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
             
             HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
             
-            DetailSection("Summary", listOf(
-                "Total Income" to "£${period.totalIncome.toInt()}",
-                "Total Spending" to "£${period.totalSpending.toInt()}",
-                "Balance" to "£${period.balance.toInt()}"
-            ))
+            Column(modifier = Modifier.weight(1f).verticalScroll(rememberScrollState())) {
+                DetailSection("Summary", listOf(
+                    "Total Income" to "£${period.totalIncome.toInt()}",
+                    "Total Spending" to "£${period.totalSpending.toInt()}",
+                    "Balance" to "£${period.balance.toInt()}"
+                ))
 
-            DetailSection("Buckets", listOf(
-                "Needs (50%)" to "£${period.totalNeeds.toInt()} (${(period.needsPercentage * 100).toInt()}%)",
-                "Wants (30%)" to "£${period.totalWants.toInt()} (${(period.wantsPercentage * 100).toInt()}%)",
-                "Savings (20%)" to "£${period.totalSavings.toInt()} (${(period.savingsPercentage * 100).toInt()}%)"
-            ))
+                DetailSection("Buckets (Target 50/30/20)", listOf(
+                    "Needs" to "£${period.totalNeeds.toInt()} (${(period.needsPercentage * 100).toInt()}%)",
+                    "Wants" to "£${period.totalWants.toInt()} (${(period.wantsPercentage * 100).toInt()}%)",
+                    "Savings" to "£${period.totalSavings.toInt()} (${(period.savingsPercentage * 100).toInt()}%)"
+                ))
 
-            DetailSection("Income Breakdown", listOf(
-                "Salary" to "£${period.salary.toInt()}",
-                "Other Income" to "£${period.otherIncome.toInt()}",
-                "Partner Contrib." to "£${period.partnerContributions.toInt()}"
-            ))
+                DetailSection("Income Details", listOf(
+                    "Salary" to "£${period.salary.toInt()}",
+                    "Other Income" to "£${period.otherIncome.toInt()}",
+                    "Partner Contributions" to "£${period.partnerContributions.toInt()}"
+                ))
+
+                DetailSection("Needs Breakdown", listOf(
+                    "Mortgage" to "£${period.mortgage.toInt()}",
+                    "Bills" to "£${period.bills.toInt()}",
+                    "Groceries" to "£${period.groceries.toInt()}",
+                    "Transport" to "£${period.transport.toInt()}",
+                    "Personal Care" to "£${period.personalCare.toInt()}",
+                    "Dentist" to "£${period.dentist.toInt()}",
+                    "Expenses" to "£${period.expenses.toInt()}"
+                ))
+
+                DetailSection("Wants Breakdown", listOf(
+                    "Eating Out" to "£${period.eatingOut.toInt()}",
+                    "Shopping" to "£${period.shopping.toInt()}",
+                    "Entertainment" to "£${period.entertainment.toInt()}",
+                    "Books" to "£${period.books.toInt()}",
+                    "Clothing" to "£${period.clothing.toInt()}",
+                    "Gifts" to "£${period.gifts.toInt()}",
+                    "Tech" to "£${period.tech.toInt()}",
+                    "Drinks" to "£${period.drinks.toInt()}",
+                    "Holidays" to "£${period.holidays.toInt()}",
+                    "Lego" to "£${period.lego.toInt()}",
+                    "Gaming" to "£${period.gaming.toInt()}",
+                    "Comics" to "£${period.comics.toInt()}",
+                    "Psychotherapy" to "£${period.psychotherapy.toInt()}",
+                    "Gym" to "£${period.gym.toInt()}",
+                    "Cycling" to "£${period.cycling.toInt()}",
+                    "Culture" to "£${period.culture.toInt()}",
+                    "Parents" to "£${period.parents.toInt()}"
+                ))
+
+                DetailSection("Savings & Investments", listOf(
+                    "Direct Savings" to "£${period.savings.toInt()}",
+                    "ISA/Investments" to "£${period.investment.toInt()}",
+                    "SIPP (Pension)" to "£${period.sipp.toInt()}"
+                ))
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
         }
     }
 }
@@ -231,17 +315,18 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
 @Composable
 fun DetailSection(title: String, items: List<Pair<String, String>>) {
     Column(modifier = Modifier.padding(bottom = 24.dp)) {
-        Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.height(8.dp))
+        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+        Spacer(modifier = Modifier.height(12.dp))
         items.forEach { (label, value) ->
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(label, style = MaterialTheme.typography.bodyLarge)
-                Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(label, style = MaterialTheme.typography.bodyMedium)
+                Text(value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             }
         }
+        HorizontalDivider(modifier = Modifier.padding(top = 12.dp), thickness = 0.5.dp, color = Color.LightGray.copy(alpha = 0.5f))
     }
 }
 

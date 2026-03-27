@@ -4,10 +4,12 @@ import com.wealthos.common.SpendingPeriod
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import kotlinx.datetime.LocalDate
 
 object SpendingPeriodRepository {
 
     private fun ResultRow.toSpendingPeriod() = SpendingPeriod(
+        id = this[SpendingPeriods.externalId],
         name = this[SpendingPeriods.name],
         startDate = this[SpendingPeriods.startDate],
         endDate = this[SpendingPeriods.endDate],
@@ -56,8 +58,26 @@ object SpendingPeriodRepository {
             .singleOrNull()
     }
 
+    fun findByExternalId(externalId: String): Int? = transaction {
+        SpendingPeriods.selectAll()
+            .where { SpendingPeriods.externalId eq externalId }
+            .map { it[SpendingPeriods.id] }
+            .singleOrNull()
+    }
+
+    fun saveOrUpdate(period: SpendingPeriod): Int = transaction {
+        val existingId = period.id?.let { findByExternalId(it) }
+        if (existingId != null) {
+            update(existingId, period)
+            existingId
+        } else {
+            add(period)
+        }
+    }
+
     fun add(period: SpendingPeriod): Int = transaction {
         SpendingPeriods.insert {
+            it[externalId] = period.id
             it[name] = period.name
             it[startDate] = period.startDate
             it[endDate] = period.endDate
@@ -97,6 +117,7 @@ object SpendingPeriodRepository {
 
     fun update(id: Int, period: SpendingPeriod): Boolean = transaction {
         SpendingPeriods.update({ SpendingPeriods.id eq id }) {
+            it[externalId] = period.id
             it[name] = period.name
             it[startDate] = period.startDate
             it[endDate] = period.endDate

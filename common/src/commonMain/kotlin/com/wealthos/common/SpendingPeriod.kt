@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SpendingPeriod(
+    val id: String? = null,
     val name: String,
     val startDate: LocalDate,
     val endDate: LocalDate,

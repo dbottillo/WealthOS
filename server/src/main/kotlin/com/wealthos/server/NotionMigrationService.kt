@@ -39,9 +39,11 @@ class NotionMigrationService(
 
             val results = response["results"]?.jsonArray ?: emptyList()
             results.forEach { page ->
-                val properties = page.jsonObject["properties"]?.jsonObject ?: return@forEach
-                val spendingPeriod = mapPageToSpendingPeriod(properties)
-                SpendingPeriodRepository.add(spendingPeriod)
+                val pageObj = page.jsonObject
+                val properties = pageObj["properties"]?.jsonObject ?: return@forEach
+                val id = pageObj["id"]?.jsonPrimitive?.content ?: ""
+                val spendingPeriod = mapPageToSpendingPeriod(id, properties)
+                SpendingPeriodRepository.saveOrUpdate(spendingPeriod)
             }
 
             hasMore = response["has_more"]?.jsonPrimitive?.boolean ?: false
@@ -49,7 +51,7 @@ class NotionMigrationService(
         }
     }
 
-    private fun mapPageToSpendingPeriod(properties: JsonObject): SpendingPeriod {
+    private fun mapPageToSpendingPeriod(id: String, properties: JsonObject): SpendingPeriod {
         fun getNumber(name: String): Double = properties[name]?.jsonObject?.get("number")?.jsonPrimitive?.doubleOrNull ?: 0.0
         fun getTitle(name: String): String = properties[name]?.jsonObject?.get("title")?.jsonArray?.firstOrNull()?.jsonObject?.get("plain_text")?.jsonPrimitive?.content ?: "Unknown"
         fun getDateStart(name: String): String = properties[name]?.jsonObject?.get("date")?.jsonObject?.get("start")?.jsonPrimitive?.content ?: "1970-01-01"
@@ -57,6 +59,7 @@ class NotionMigrationService(
         fun getCreatedTime(name: String): String = properties[name]?.jsonObject?.get("created_time")?.jsonPrimitive?.content ?: "1970-01-01T00:00:00Z"
 
         return SpendingPeriod(
+            id = id,
             name = getTitle("Name"),
             startDate = getDateStart("Period").toLocalDate(),
             endDate = getDateEnd("Period").toLocalDate(),

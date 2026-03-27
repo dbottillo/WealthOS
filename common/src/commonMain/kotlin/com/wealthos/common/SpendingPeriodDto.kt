@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SpendingPeriodDto(
+    val id: String?,
     val name: String,
     val startDate: LocalDate,
     val endDate: LocalDate,
@@ -71,6 +72,7 @@ fun SpendingPeriod.toDto(): SpendingPeriodDto {
     }
     
     return SpendingPeriodDto(
+        id = id,
         name = name,
         startDate = startDate,
         endDate = endDate,

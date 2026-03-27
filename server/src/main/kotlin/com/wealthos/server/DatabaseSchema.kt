@@ -6,6 +6,7 @@ import org.jetbrains.exposed.sql.kotlin.datetime.timestamp
 
 object SpendingPeriods : Table("spending_periods") {
     val id = integer("id").autoIncrement()
+    val externalId = varchar("external_id", 255).nullable().uniqueIndex()
     val name = varchar("name", 255)
     val startDate = date("start_date")
     val endDate = date("end_date")
