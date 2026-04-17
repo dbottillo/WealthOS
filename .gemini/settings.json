@@ -1,1 +1,13 @@
-{}
+{
+  "tools": {
+    "allowed": [
+      "run_shell_command(git status)",
+      "run_shell_command(git fetch)",
+      "run_shell_command(git diff)",
+      "read_file",
+      "grep_search",
+      "list_directory",
+      "glob"
+    ]
+  }
+}
