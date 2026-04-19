@@ -43,4 +43,5 @@ dependencies {
     implementation(libs.flyway.database.postgresql)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.ktor.server.tests)
+    testImplementation(libs.h2)
 }

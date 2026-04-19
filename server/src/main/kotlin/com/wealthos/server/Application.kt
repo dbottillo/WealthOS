@@ -12,25 +12,30 @@ import io.ktor.server.routing.*
 import com.wealthos.common.toDto
 
 fun main() {
-    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module)
-        .start(wait = true)
+    println("Starting server on http://localhost:8080...")
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        module(SpendingPeriodRepository())
+    }.start(wait = true)
 }
 
-fun Application.module() {
+fun Application.module(repository: SpendingPeriodRepository) {
     install(CORS) {
         allowHost("localhost:8081")
-        allowMethod(io.ktor.http.HttpMethod.Options)
+        allowMethod(io.ktor.http.HttpMethod.Get)
+        allowMethod(io.ktor.http.HttpMethod.Post)
         allowMethod(io.ktor.http.HttpMethod.Put)
         allowMethod(io.ktor.http.HttpMethod.Delete)
+        allowMethod(io.ktor.http.HttpMethod.Options)
         allowHeader(io.ktor.http.HttpHeaders.ContentType)
         allowHeader(io.ktor.http.HttpHeaders.Authorization)
     }
 
-    // Database initialization (will fail if DB is not running, which is fine for now)
+    // Database initialization
     try {
         DatabaseFactory.connectAndMigrate()
     } catch (e: Exception) {
         log.error("Failed to connect to database: ${e.message}")
+        println("ERROR: Failed to connect to database: ${e.message}")
     }
 
     install(ContentNegotiation) {
@@ -42,54 +47,7 @@ fun Application.module() {
             call.respond(mapOf("status" to "UP"))
         }
 
-        route("/api/periods") {
-            get {
-                call.respond(SpendingPeriodRepository.findAll().map { it.toDto() })
-            }
-            get("/{id}") {
-                val id = call.parameters["id"]?.toIntOrNull()
-                if (id == null) {
-                    call.respond(io.ktor.http.HttpStatusCode.BadRequest)
-                    return@get
-                }
-                val period = SpendingPeriodRepository.findById(id)
-                if (period == null) {
-                    call.respond(io.ktor.http.HttpStatusCode.NotFound)
-                } else {
-                    call.respond(period.toDto())
-                }
-            }
-            post {
-                val period = call.receive<com.wealthos.common.SpendingPeriod>()
-                val id = SpendingPeriodRepository.add(period)
-                call.respond(io.ktor.http.HttpStatusCode.Created, mapOf("id" to id))
-            }
-            put("/{id}") {
-                val id = call.parameters["id"]?.toIntOrNull()
-                if (id == null) {
-                    call.respond(io.ktor.http.HttpStatusCode.BadRequest)
-                    return@put
-                }
-                val period = call.receive<com.wealthos.common.SpendingPeriod>()
-                if (SpendingPeriodRepository.update(id, period)) {
-                    call.respond(io.ktor.http.HttpStatusCode.OK)
-                } else {
-                    call.respond(io.ktor.http.HttpStatusCode.NotFound)
-                }
-            }
-            delete("/{id}") {
-                val id = call.parameters["id"]?.toIntOrNull()
-                if (id == null) {
-                    call.respond(io.ktor.http.HttpStatusCode.BadRequest)
-                    return@delete
-                }
-                if (SpendingPeriodRepository.delete(id)) {
-                    call.respond(io.ktor.http.HttpStatusCode.OK)
-                } else {
-                    call.respond(io.ktor.http.HttpStatusCode.NotFound)
-                }
-            }
-        }
+        apiRoutes(repository)
 
         post("/api/migrate") {
             val apiKey = System.getenv("NOTION_API_KEY") ?: ""
@@ -99,10 +57,61 @@ fun Application.module() {
                 return@post
             }
             try {
-                NotionMigrationService(apiKey, databaseId).migrate()
+                NotionMigrationService(apiKey, databaseId, repository).migrate()
                 call.respond(io.ktor.http.HttpStatusCode.OK, "Migration successful")
             } catch (e: Exception) {
                 call.respond(io.ktor.http.HttpStatusCode.InternalServerError, "Migration failed: ${e.message}")
+            }
+        }
+    }
+}
+
+fun Route.apiRoutes(repository: SpendingPeriodRepository) {
+    route("/api/periods") {
+        get {
+            call.respond(repository.findAll().map { it.toDto() })
+        }
+        get("/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            if (id == null) {
+                call.respond(io.ktor.http.HttpStatusCode.BadRequest)
+                return@get
+            }
+            val period = repository.findById(id)
+            if (period == null) {
+                call.respond(io.ktor.http.HttpStatusCode.NotFound)
+            } else {
+                call.respond(period.toDto())
+            }
+        }
+        post {
+            val period = call.receive<com.wealthos.common.SpendingPeriod>()
+            val id = repository.add(period)
+            call.respond(io.ktor.http.HttpStatusCode.Created, mapOf("id" to id))
+        }
+        put("/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            if (id == null) {
+                call.respond(io.ktor.http.HttpStatusCode.BadRequest)
+                return@put
+            }
+            val period = call.receive<com.wealthos.common.SpendingPeriod>()
+            if (repository.update(id, period)) {
+                call.respond(io.ktor.http.HttpStatusCode.OK)
+            } else {
+                call.respond(io.ktor.http.HttpStatusCode.NotFound)
+            }
+        }
+        delete("/{id}") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            if (id == null) {
+                call.respond(io.ktor.http.HttpStatusCode.BadRequest)
+                return@delete
+            }
+            if (repository.delete(id)) {
+                call.respond(io.ktor.http.HttpStatusCode.OK)
+            } else {
+                call.respond(io.ktor.http.HttpStatusCode.NotFound)
             }
         }
     }

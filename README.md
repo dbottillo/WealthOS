@@ -48,8 +48,29 @@ Run the dev server with hot-reload enabled:
 ```
 The app will open automatically at **http://localhost:8081/**.
 
-### 4. Notion Sync
+## Testing
+The project includes unit tests for shared logic and integration tests for the backend.
+
+### 1. Shared Logic Tests (Calculation Engine)
+To run unit tests for financial calculations in the `common` module:
+```bash
+./gradlew :common:jvmTest
+```
+
+### 2. Backend Integration Tests (API)
+To run integration tests for the Ktor REST API. These tests use an **in-memory H2 database** and do not require your local PostgreSQL to be running:
+```bash
+./gradlew :server:test
+```
+
+### 3. Run All Tests
+```bash
+./gradlew test
+```
+
+## Notion Sync
 Once the app is running, click the **"Sync Notion"** button in the Overview tab to import your historical data into the local PostgreSQL instance.
+
 
 ## Project Structure
 - `/common`: Shared KMP module (Models, Repository, API Client).

@@ -13,7 +13,8 @@ import kotlinx.serialization.json.*
 
 class NotionMigrationService(
     private val notionApiKey: String,
-    private val databaseId: String
+    private val databaseId: String,
+    private val repository: SpendingPeriodRepository
 ) {
     private val client = HttpClient {
         install(ContentNegotiation) {
@@ -43,7 +44,7 @@ class NotionMigrationService(
                 val properties = pageObj["properties"]?.jsonObject ?: return@forEach
                 val id = pageObj["id"]?.jsonPrimitive?.content ?: ""
                 val spendingPeriod = mapPageToSpendingPeriod(id, properties)
-                SpendingPeriodRepository.saveOrUpdate(spendingPeriod)
+                repository.saveOrUpdate(spendingPeriod)
             }
 
             hasMore = response["has_more"]?.jsonPrimitive?.boolean ?: false

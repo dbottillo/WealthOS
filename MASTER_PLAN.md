@@ -59,7 +59,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 
 ### Phase 4: Refinement & Local Deployment
 - [x] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** for production readiness.
-- [ ] **Testing:** 
+- [x] **Testing:** 
     - Implement `Ktor Server` Application tests for the API endpoints.
     - Write unit tests for the 50/30/20 Calculation Engine and DTO mappings in `common`.
 - [ ] **Local Server Deployment:** Refine the Docker setup, potentially introducing an Nginx/Caddy reverse proxy, and deploy to the home server.

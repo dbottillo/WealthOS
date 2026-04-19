@@ -6,7 +6,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlinx.datetime.LocalDate
 
-object SpendingPeriodRepository {
+class SpendingPeriodRepository {
 
     private fun ResultRow.toSpendingPeriod() = SpendingPeriod(
         id = this[SpendingPeriods.externalId],
@@ -158,3 +158,4 @@ object SpendingPeriodRepository {
         SpendingPeriods.deleteWhere { SpendingPeriods.id eq id } > 0
     }
 }
+

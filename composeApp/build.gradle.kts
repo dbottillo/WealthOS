@@ -30,6 +30,7 @@ kotlin {
                 implementation(libs.lifecycle.runtime.compose)
                 implementation(libs.lifecycle.viewmodel.compose)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.kotlinx.serialization.json)
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)
