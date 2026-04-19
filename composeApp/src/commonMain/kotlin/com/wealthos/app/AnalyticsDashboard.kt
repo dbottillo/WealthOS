@@ -23,7 +23,8 @@ fun AnalyticsDashboard(periods: List<SpendingPeriodDto>) {
         return
     }
 
-    val latestPeriod = periods.last()
+    // Server returns periods sorted by startDate DESC (newest first)
+    val latestPeriod = periods.first()
 
     Column(
         modifier = Modifier
@@ -44,7 +45,8 @@ fun AnalyticsDashboard(periods: List<SpendingPeriodDto>) {
         Spacer(modifier = Modifier.height(24.dp))
         Text("Spending Trend (Last 6 Periods)", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
-        SpendingTrendChart(periods.takeLast(6))
+        // Take the 6 most recent and reverse them to show chronological order (oldest -> newest)
+        SpendingTrendChart(periods.take(6).reversed())
     }
 }
 

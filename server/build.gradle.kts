@@ -40,4 +40,5 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.logback)
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.ktor.server.tests)
 }

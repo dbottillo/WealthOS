@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wealthos.common.SpendingPeriodDto
 import com.wealthos.common.SpendingPeriodViewModel
+import kotlinx.serialization.Serializable
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.abs
 
@@ -34,7 +35,6 @@ enum class Screen {
     List, Add, Analytics
 }
 
-@Serializable
 data class ColumnDef(val title: String, val width: androidx.compose.ui.unit.Dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -307,7 +307,7 @@ fun TrendRow(label: String, current: Double, previous: Double, invert: Boolean =
     val threshold = 1.0 // Minimal change threshold for £
     
     val trendData: Pair<ImageVector, Color> = when {
-        abs(diff) < threshold -> Pair(Icons.Default.TrendingFlat, Color.Gray)
+        abs(diff) < threshold -> Pair(Icons.Default.Menu, Color.Gray)
         diff > 0 -> Pair(Icons.Default.KeyboardArrowUp, if (invert) Color(0xFFC62828) else Color(0xFF2E7D32))
         else -> Pair(Icons.Default.KeyboardArrowDown, if (invert) Color(0xFF2E7D32) else Color(0xFFC62828))
     }
