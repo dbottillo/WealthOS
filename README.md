@@ -74,27 +74,44 @@ Once the app is running, click the **"Sync Notion"** button in the Overview tab 
 ## Deployment (Docker & CI/CD)
 The project is configured with GitHub Actions to automatically build and push Docker images to the GitHub Container Registry (GHCR) on every push to `main`.
 
-### 1. Initial Server Setup
-You do **not** need the source code on your server. You only need two files:
-1. `docker-compose.yaml` (Copy it from this repo)
-2. `.env` (Create it to store your secrets)
+### 1. Server Prerequisites
+- **Docker** and **Docker Compose** installed.
+- (If your repo is private) A GitHub **Personal Access Token (PAT)** with `read:packages` scope.
 
-### 2. Deploy / Update
-To deploy the latest version or update your running app:
+### 2. Initial Setup on Server
+You do **not** need the source code on your server. Follow these steps:
+
+1. **Create a directory** for the app:
+   ```bash
+   mkdir wealthos && cd wealthos
+   ```
+2. **Download the configuration**:
+   ```bash
+   curl -O https://raw.githubusercontent.com/dbottillo/WealthOS/main/docker-compose.yaml
+   ```
+3. **Create a `.env` file**:
+   ```bash
+   nano .env
+   ```
+   Paste and customize:
+   ```env
+   POSTGRES_PASSWORD=choose_a_db_password
+   JDBC_DATABASE_PASSWORD=choose_a_db_password
+   NOTION_API_KEY=your_secret_notion_key
+   ```
+4. **Log in to GitHub Registry** (Only if repo is Private):
+   ```bash
+   docker login ghcr.io -u YOUR_GITHUB_USERNAME
+   ```
+   *Use your PAT as the password.*
+
+### 3. Launch or Update
+To start the app for the first time, or to update to the latest version after a GitHub Action build finishes:
 ```bash
 docker compose pull
 docker compose up -d
 ```
-
 The app will be available on port **80**.
-
-### 3. Environment Variables (.env)
-```env
-JDBC_DATABASE_URL=jdbc:postgresql://db:5432/wealthos
-JDBC_DATABASE_USER=postgres
-JDBC_DATABASE_PASSWORD=your_password
-NOTION_API_KEY=your_notion_key
-```
 
 
 ## Project Structure
