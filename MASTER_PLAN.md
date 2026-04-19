@@ -50,15 +50,15 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] **App Entry Point:** Configure Android `MainActivity` and tie it into the shared compose UI.
     - [x] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
 
-### Phase 3: Local Validation & Manual Testing
+### Phase 3: Local Validation & Manual Testing (COMPLETED)
 - [x] **Database Spining:** Run PostgreSQL locally and verify connectivity. (Installed natively via Homebrew)
 - [x] **Backend Launch:** Start the Ktor server locally and test `/health` and `/api/periods` via `curl` or Postman.
 - [x] **Data Migration Run:** Trigger the `/api/migrate` endpoint manually to seed the local database with Notion data.
 - [x] **Web App Launch:** Run the Wasm version of the app in the browser and verify it displays the imported data.
-- [ ] **UI Polish & Iteration:** Refine the appearance and layout of the web application based on user feedback.
+- [x] **UI Polish & Iteration:** Refine the appearance and layout of the web application based on user feedback.
 
 ### Phase 4: Refinement & Local Deployment
-- [ ] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** or **Liquibase** for production readiness.
+- [x] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** for production readiness.
 - [ ] **Testing:** 
     - Implement `Ktor Server` Application tests for the API endpoints.
     - Write unit tests for the 50/30/20 Calculation Engine and DTO mappings in `common`.

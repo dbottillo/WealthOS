@@ -1,8 +1,7 @@
 package com.wealthos.server
 
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.transactions.transaction
+import org.flywaydb.core.Flyway
 
 object DatabaseFactory {
     fun connectAndMigrate() {
@@ -11,10 +10,13 @@ object DatabaseFactory {
         val user = System.getenv("JDBC_DATABASE_USER") ?: ""
         val password = System.getenv("JDBC_DATABASE_PASSWORD") ?: ""
         
-        val database = Database.connect(jdbcURL, driverClassName, user, password)
-        
-        transaction(database) {
-            SchemaUtils.create(SpendingPeriods)
-        }
+        // 1. Run Migrations with Flyway
+        val flyway = Flyway.configure()
+            .dataSource(jdbcURL, user, password)
+            .load()
+        flyway.migrate()
+
+        // 2. Connect Exposed to the database
+        Database.connect(jdbcURL, driverClassName, user, password)
     }
 }

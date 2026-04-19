@@ -13,6 +13,7 @@ kotlinx-datetime = "0.6.1"
 kotlinx-serialization = "1.8.0"
 logback = "1.5.16"
 koin = "4.0.0"
+flyway = "11.3.4"
 jetbrains-lifecycle = "2.8.4"
 ktor-client = "3.1.0"
 
@@ -43,6 +44,8 @@ exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "e
 exposed-kotlin-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 
 [plugins]
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

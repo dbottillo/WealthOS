@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.exposed.kotlin.datetime)
     implementation(libs.postgresql)
     implementation(libs.logback)
+    implementation(libs.flyway.core)
+    implementation(libs.flyway.database.postgresql)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.ktor.server.tests)
 }

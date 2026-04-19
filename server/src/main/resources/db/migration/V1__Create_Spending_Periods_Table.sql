@@ -1,0 +1,48 @@
+CREATE TABLE IF NOT EXISTS spending_periods (
+    id SERIAL PRIMARY KEY,
+    external_id VARCHAR(255) NULL,
+    name VARCHAR(255) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    
+    -- Incomes
+    salary DOUBLE PRECISION DEFAULT 0.0,
+    other_income DOUBLE PRECISION DEFAULT 0.0,
+    partner_contributions DOUBLE PRECISION DEFAULT 0.0,
+    
+    -- Needs
+    mortgage DOUBLE PRECISION DEFAULT 0.0,
+    bills DOUBLE PRECISION DEFAULT 0.0,
+    groceries DOUBLE PRECISION DEFAULT 0.0,
+    transport DOUBLE PRECISION DEFAULT 0.0,
+    personal_care DOUBLE PRECISION DEFAULT 0.0,
+    dentist DOUBLE PRECISION DEFAULT 0.0,
+    expenses DOUBLE PRECISION DEFAULT 0.0,
+    
+    -- Wants
+    eating_out DOUBLE PRECISION DEFAULT 0.0,
+    shopping DOUBLE PRECISION DEFAULT 0.0,
+    entertainment DOUBLE PRECISION DEFAULT 0.0,
+    books DOUBLE PRECISION DEFAULT 0.0,
+    clothing DOUBLE PRECISION DEFAULT 0.0,
+    gifts DOUBLE PRECISION DEFAULT 0.0,
+    tech DOUBLE PRECISION DEFAULT 0.0,
+    drinks DOUBLE PRECISION DEFAULT 0.0,
+    holidays DOUBLE PRECISION DEFAULT 0.0,
+    lego DOUBLE PRECISION DEFAULT 0.0,
+    gaming DOUBLE PRECISION DEFAULT 0.0,
+    comics DOUBLE PRECISION DEFAULT 0.0,
+    psychotherapy DOUBLE PRECISION DEFAULT 0.0,
+    gym DOUBLE PRECISION DEFAULT 0.0,
+    cycling DOUBLE PRECISION DEFAULT 0.0,
+    culture DOUBLE PRECISION DEFAULT 0.0,
+    parents DOUBLE PRECISION DEFAULT 0.0,
+    
+    -- Savings
+    savings DOUBLE PRECISION DEFAULT 0.0,
+    investment DOUBLE PRECISION DEFAULT 0.0,
+    sipp DOUBLE PRECISION DEFAULT 0.0,
+    
+    CONSTRAINT spending_periods_external_id_unique UNIQUE (external_id)
+);
