@@ -12,14 +12,34 @@ object DatabaseFactory {
         
         println("Connecting to database: $jdbcURL (User: $user)")
         
-        // 1. Connect Exposed to the database
-        Database.connect(jdbcURL, driverClassName, user, password)
+        // Retry logic for initial connection
+        var connected = false
+        var retries = 5
+        while (!connected && retries > 0) {
+            try {
+                // 1. Connect Exposed to the database
+                Database.connect(jdbcURL, driverClassName, user, password)
+                
+                // Test the connection with a simple query
+                org.jetbrains.exposed.sql.transactions.transaction {
+                    org.jetbrains.exposed.sql.SchemaUtils.listTables()
+                }
+                
+                connected = true
+                println("Connected to database successfully.")
+            } catch (e: Exception) {
+                retries--
+                println("Database not ready yet... Retrying in 5 seconds ($retries retries left)")
+                Thread.sleep(5000)
+                if (retries == 0) throw e
+            }
+        }
 
         // 2. Run Migrations with Flyway
         try {
             val flyway = Flyway.configure()
                 .dataSource(jdbcURL, user, password)
-                .baselineOnMigrate(true) // Added this to handle existing DBs
+                .baselineOnMigrate(true)
                 .load()
             
             println("Running Flyway migrations...")
