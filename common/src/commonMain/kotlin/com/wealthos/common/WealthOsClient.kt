@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
-class WealthOsClient(private val baseUrl: String) {
+class WealthOsClient(private val baseUrl: String = "") {
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
@@ -19,16 +19,20 @@ class WealthOsClient(private val baseUrl: String) {
         }
     }
 
+    private fun getUrl(path: String): String {
+        return if (baseUrl.isBlank()) path else "$baseUrl$path"
+    }
+
     suspend fun getHealth(): Map<String, String> {
-        return client.get("$baseUrl/health").body()
+        return client.get(getUrl("/health")).body()
     }
 
     suspend fun getPeriods(): List<SpendingPeriodDto> {
-        return client.get("$baseUrl/api/periods").body()
+        return client.get(getUrl("/api/periods")).body()
     }
 
     suspend fun addPeriod(period: SpendingPeriod): Int {
-        val response: Map<String, Int> = client.post("$baseUrl/api/periods") {
+        val response: Map<String, Int> = client.post(getUrl("/api/periods")) {
             contentType(ContentType.Application.Json)
             setBody(period)
         }.body()
@@ -36,17 +40,17 @@ class WealthOsClient(private val baseUrl: String) {
     }
 
     suspend fun updatePeriod(id: Int, period: SpendingPeriod) {
-        client.put("$baseUrl/api/periods/$id") {
+        client.put(getUrl("/api/periods/$id")) {
             contentType(ContentType.Application.Json)
             setBody(period)
         }
     }
 
     suspend fun deletePeriod(id: Int) {
-        client.delete("$baseUrl/api/periods/$id")
+        client.delete(getUrl("/api/periods/$id"))
     }
 
     suspend fun triggerMigration() {
-        client.post("$baseUrl/api/migrate")
+        client.post(getUrl("/api/migrate"))
     }
 }

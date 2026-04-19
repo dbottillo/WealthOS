@@ -5,7 +5,7 @@ import com.wealthos.common.initKoin
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
-    initKoin(baseUrl = "http://localhost:8080") {
+    initKoin() {
         // Web specific config
     }
     CanvasBasedWindow(title = "WealthOS", canvasElementId = "ComposeTarget") {

@@ -5,7 +5,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
 
-fun initKoin(baseUrl: String, appDeclaration: KoinAppDeclaration = {}) =
+fun initKoin(baseUrl: String = "", appDeclaration: KoinAppDeclaration = {}) =
     startKoin {
         appDeclaration()
         modules(commonModule(baseUrl))

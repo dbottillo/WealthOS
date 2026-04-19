@@ -71,6 +71,31 @@ To run integration tests for the Ktor REST API. These tests use an **in-memory H
 ## Notion Sync
 Once the app is running, click the **"Sync Notion"** button in the Overview tab to import your historical data into the local PostgreSQL instance.
 
+## Deployment (Docker & CI/CD)
+The project is configured with GitHub Actions to automatically build and push Docker images to the GitHub Container Registry (GHCR) on every push to `main`.
+
+### 1. Initial Server Setup
+You do **not** need the source code on your server. You only need two files:
+1. `docker-compose.yaml` (Copy it from this repo)
+2. `.env` (Create it to store your secrets)
+
+### 2. Deploy / Update
+To deploy the latest version or update your running app:
+```bash
+docker compose pull
+docker compose up -d
+```
+
+The app will be available on port **80**.
+
+### 3. Environment Variables (.env)
+```env
+JDBC_DATABASE_URL=jdbc:postgresql://db:5432/wealthos
+JDBC_DATABASE_USER=postgres
+JDBC_DATABASE_PASSWORD=your_password
+NOTION_API_KEY=your_notion_key
+```
+
 
 ## Project Structure
 - `/common`: Shared KMP module (Models, Repository, API Client).

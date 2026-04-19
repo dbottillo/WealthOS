@@ -1,11 +1,12 @@
-# Use an image with JDK 25 to build (using the local gradlew)
+# Stage 1: Build the application
 FROM openjdk:21-slim AS build
-# Note: I'll actually copy the build result for now to keep it fast, 
-# but in a real CI it would build from source.
-# For this task, I'll assume the files are built locally.
+WORKDIR /home/gradle/src
+COPY . .
+RUN ./gradlew :server:installDist --no-daemon
 
+# Stage 2: Runtime image
 FROM openjdk:21-slim
 WORKDIR /app
-COPY server/build/install/server /app/
+COPY --from=build /home/gradle/src/server/build/install/server /app/
 EXPOSE 8080
 CMD ["./bin/server"]
