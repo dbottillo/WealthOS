@@ -7,6 +7,7 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(21)
     androidTarget {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
