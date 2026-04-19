@@ -14,12 +14,11 @@ services:
   server:
     image: ghcr.io/dbottillo/wealthos-server:latest
     restart: unless-stopped
-    ports:
-      - "8080:8080"
     environment:
+      # We default the connection user/pass to the DB user/pass to avoid mismatches
       JDBC_DATABASE_URL: ${JDBC_DATABASE_URL:-jdbc:postgresql://db:5432/wealthos}
-      JDBC_DATABASE_USER: ${JDBC_DATABASE_USER:-postgres}
-      JDBC_DATABASE_PASSWORD: ${JDBC_DATABASE_PASSWORD:-password}
+      JDBC_DATABASE_USER: ${POSTGRES_USER:-postgres}
+      JDBC_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       NOTION_API_KEY: ${NOTION_API_KEY}
     depends_on:
       - db
@@ -28,7 +27,7 @@ services:
     image: ghcr.io/dbottillo/wealthos-web:latest
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "9090:80"
     depends_on:
       - server
 
