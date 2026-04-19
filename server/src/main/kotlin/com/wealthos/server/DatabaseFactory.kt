@@ -10,6 +10,8 @@ object DatabaseFactory {
         val user = System.getenv("JDBC_DATABASE_USER") ?: ""
         val password = System.getenv("JDBC_DATABASE_PASSWORD") ?: ""
         
+        println("Connecting to database: $jdbcURL (User: $user)")
+        
         // 1. Connect Exposed to the database
         Database.connect(jdbcURL, driverClassName, user, password)
 
@@ -17,14 +19,15 @@ object DatabaseFactory {
         try {
             val flyway = Flyway.configure()
                 .dataSource(jdbcURL, user, password)
+                .baselineOnMigrate(true) // Added this to handle existing DBs
                 .load()
-            flyway.migrate()
+            
+            println("Running Flyway migrations...")
+            val result = flyway.migrate()
+            println("Flyway migration result: ${result.migrationsExecuted} migrations executed.")
         } catch (e: Exception) {
-            println("Flyway migration failed: ${e.message}. Ensuring table exists via SchemaUtils as fallback...")
-            // Fallback for local dev if Flyway is being tricky or DB is empty but accessible
-            // transaction { SchemaUtils.create(SpendingPeriods) } 
-            // Actually, let's just let it fail if the user wants production readiness, 
-            // but for now, we want the app to start.
+            println("ERROR: Flyway migration failed: ${e.message}")
+            e.printStackTrace()
             throw e
         }
     }
