@@ -10,18 +10,23 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-wealthos}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   server:
     image: ghcr.io/dbottillo/wealthos-server:latest
     restart: unless-stopped
     environment:
-      # We default the connection user/pass to the DB user/pass to avoid mismatches
       JDBC_DATABASE_URL: ${JDBC_DATABASE_URL:-jdbc:postgresql://db:5432/wealthos}
       JDBC_DATABASE_USER: ${POSTGRES_USER:-postgres}
       JDBC_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-password}
       NOTION_API_KEY: ${NOTION_API_KEY}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   web:
     image: ghcr.io/dbottillo/wealthos-web:latest
@@ -29,7 +34,8 @@ services:
     ports:
       - "9090:80"
     depends_on:
-      - server
+      server:
+        condition: service_started
 
 volumes:
   db-data:
