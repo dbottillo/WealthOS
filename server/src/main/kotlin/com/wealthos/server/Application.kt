@@ -20,7 +20,7 @@ fun main() {
 
 fun Application.module(repository: SpendingPeriodRepository) {
     install(CORS) {
-        allowHost("localhost:8081")
+        anyHost() // Allow access from any host (important for Docker/Nginx proxying)
         allowMethod(io.ktor.http.HttpMethod.Get)
         allowMethod(io.ktor.http.HttpMethod.Post)
         allowMethod(io.ktor.http.HttpMethod.Put)
