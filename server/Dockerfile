@@ -9,4 +9,6 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /home/gradle/src/server/build/install/server /app/
 EXPOSE 8080
+# Use -Djava.io.tmpdir=/tmp to avoid permission issues and ensure logs are flushed
+ENV JAVA_OPTS="-Djava.io.tmpdir=/tmp"
 CMD ["./bin/server"]
