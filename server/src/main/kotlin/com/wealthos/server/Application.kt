@@ -21,11 +21,19 @@ fun main() {
 fun Application.module(repository: SpendingPeriodRepository) {
     install(CORS) {
         val allowedHost = System.getenv("ALLOWED_HOST") ?: "localhost:8081"
-        if (allowedHost == "*") {
+        println("Configuring CORS with ALLOWED_HOST: $allowedHost")
+        
+        if (allowedHost == "*" || allowedHost.isEmpty()) {
+            println("CORS: Allowing any host")
             anyHost()
         } else {
-            // Remove protocol if present (Ktor's allowHost expects only the host:port)
-            val hostOnly = allowedHost.removePrefix("http://").removePrefix("https://")
+            // Remove protocol and trailing slash if present
+            val hostOnly = allowedHost
+                .removePrefix("http://")
+                .removePrefix("https://")
+                .split("/")[0]
+            
+            println("CORS: Allowing specific host: $hostOnly")
             allowHost(hostOnly, schemes = listOf("http", "https"))
         }
         allowMethod(io.ktor.http.HttpMethod.Get)
