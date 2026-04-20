@@ -52,6 +52,9 @@ fun Application.module(repository: SpendingPeriodRepository) {
         post("/api/migrate") {
             val apiKey = System.getenv("NOTION_API_KEY") ?: ""
             val databaseId = System.getenv("NOTION_DATABASE_ID") ?: "9a1f95e6fdeb42db9cf4690bc97aab8d"
+            
+            println("Migration triggered. API Key present: ${apiKey.isNotEmpty()}, Database ID: $databaseId")
+            
             if (apiKey.isEmpty()) {
                 call.respond(io.ktor.http.HttpStatusCode.InternalServerError, "Notion API key not set")
                 return@post
@@ -60,6 +63,8 @@ fun Application.module(repository: SpendingPeriodRepository) {
                 NotionMigrationService(apiKey, databaseId, repository).migrate()
                 call.respond(io.ktor.http.HttpStatusCode.OK, "Migration successful")
             } catch (e: Exception) {
+                println("ERROR: Migration failed: ${e.message}")
+                e.printStackTrace()
                 call.respond(io.ktor.http.HttpStatusCode.InternalServerError, "Migration failed: ${e.message}")
             }
         }

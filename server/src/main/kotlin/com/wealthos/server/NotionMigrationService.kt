@@ -23,10 +23,13 @@ class NotionMigrationService(
     }
 
     suspend fun migrate() {
+        println("Starting Notion migration for database: $databaseId")
         var hasMore = true
         var nextCursor: String? = null
+        var totalProcessed = 0
 
         while (hasMore) {
+            println("Fetching next page from Notion... (Cursor: ${nextCursor ?: "Initial"})")
             val response = client.post("https://api.notion.com/v1/databases/$databaseId/query") {
                 header("Authorization", "Bearer $notionApiKey")
                 header("Notion-Version", "2022-06-28")
@@ -39,17 +42,25 @@ class NotionMigrationService(
             }.body<JsonObject>()
 
             val results = response["results"]?.jsonArray ?: emptyList()
+            println("Found ${results.size} items in this page.")
+            
             results.forEach { page ->
-                val pageObj = page.jsonObject
-                val properties = pageObj["properties"]?.jsonObject ?: return@forEach
-                val id = pageObj["id"]?.jsonPrimitive?.content ?: ""
-                val spendingPeriod = mapPageToSpendingPeriod(id, properties)
-                repository.saveOrUpdate(spendingPeriod)
+                try {
+                    val pageObj = page.jsonObject
+                    val properties = pageObj["properties"]?.jsonObject ?: return@forEach
+                    val id = pageObj["id"]?.jsonPrimitive?.content ?: ""
+                    val spendingPeriod = mapPageToSpendingPeriod(id, properties)
+                    repository.saveOrUpdate(spendingPeriod)
+                    totalProcessed++
+                } catch (e: Exception) {
+                    println("Error processing page: ${e.message}")
+                }
             }
 
             hasMore = response["has_more"]?.jsonPrimitive?.boolean ?: false
             nextCursor = response["next_cursor"]?.jsonPrimitive?.contentOrNull
         }
+        println("Migration finished. Total items processed: $totalProcessed")
     }
 
     private fun mapPageToSpendingPeriod(id: String, properties: JsonObject): SpendingPeriod {
