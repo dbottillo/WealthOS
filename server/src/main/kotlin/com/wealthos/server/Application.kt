@@ -20,7 +20,14 @@ fun main() {
 
 fun Application.module(repository: SpendingPeriodRepository) {
     install(CORS) {
-        anyHost() // Allow access from any host (important for Docker/Nginx proxying)
+        val allowedHost = System.getenv("ALLOWED_HOST") ?: "localhost:8081"
+        if (allowedHost == "*") {
+            anyHost()
+        } else {
+            // Remove protocol if present (Ktor's allowHost expects only the host:port)
+            val hostOnly = allowedHost.removePrefix("http://").removePrefix("https://")
+            allowHost(hostOnly, schemes = listOf("http", "https"))
+        }
         allowMethod(io.ktor.http.HttpMethod.Get)
         allowMethod(io.ktor.http.HttpMethod.Post)
         allowMethod(io.ktor.http.HttpMethod.Put)
