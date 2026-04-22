@@ -54,8 +54,14 @@ services:
     command: >
       sh -c "
       tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock &
-      until tailscale up --authkey=$TS_AUTHKEY --hostname=$TS_HOSTNAME; do sleep 1; done;
-      tailscale serve --https=443 / http://web:80;
+      echo 'Waiting for tailscaled to start...'
+      until tailscale status > /dev/null 2>&1; do sleep 1; done
+      echo 'Authenticating with Tailscale...'
+      tailscale up --authkey=$${TS_AUTHKEY} --hostname=$${TS_HOSTNAME} --accept-dns=true
+      echo 'Setting up Tailscale Serve...'
+      # Run serve and log output, if it fails, it will print why
+      tailscale serve --https=443 / http://web:80
+      echo 'Tailscale Serve is active. Keeping container alive...'
       wait
       "
 
