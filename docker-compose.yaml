@@ -38,22 +38,5 @@ services:
       server:
         condition: service_started
 
-  tailscale:
-    image: tailscale/tailscale:latest
-    hostname: ${TS_HOSTNAME:-wealthos}
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_STATE_DIR=/var/lib/tailscale
-      - TS_SERVE_CONFIG=/config/serve.json
-    volumes:
-      - ts-state:/var/lib/tailscale
-      - /dev/net/tun:/dev/net/tun
-      - ./tailscale-serve.json:/config/serve.json:ro
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    restart: unless-stopped
-
 volumes:
   db-data:
-  ts-state:
