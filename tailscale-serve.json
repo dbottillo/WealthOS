@@ -1,6 +1,12 @@
 {
-  "Web": {
+  "TCP": {
     "443": {
+      "HTTPS": true,
+      "TerminateTLS": "wealthos"
+    }
+  },
+  "Web": {
+    "wealthos:443": {
       "Handlers": {
         "/": {
           "Proxy": "http://web:80"
