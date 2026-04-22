@@ -2,11 +2,11 @@
   "TCP": {
     "443": {
       "HTTPS": true,
-      "TerminateTLS": "wealthos"
+      "TerminateTLS": "wealthos.taild43732.ts.net"
     }
   },
   "Web": {
-    "wealthos:443": {
+    "wealthos.taild43732.ts.net:443": {
       "Handlers": {
         "/": {
           "Proxy": "http://web:80"
