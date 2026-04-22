@@ -38,5 +38,27 @@ services:
       server:
         condition: service_started
 
+  tailscale:
+    image: tailscale/tailscale:latest
+    hostname: ${TS_HOSTNAME:-wealthos}
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - ts-state:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    restart: unless-stopped
+    command: >
+      sh -c "
+      tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock &
+      until tailscale up --authkey=$TS_AUTHKEY --hostname=$TS_HOSTNAME; do sleep 1; done;
+      tailscale serve --https=443 / http://web:80;
+      wait
+      "
+
 volumes:
   db-data:
+  ts-state:
