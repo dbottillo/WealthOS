@@ -13,8 +13,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - **Web Frontend:** Compose Multiplatform for Web (Kotlin/Wasm or Kotlin/JS) - **Primary use: Data entry and deep analysis.**
 - **Backend:** Kotlin with **Ktor** for the REST API.
 - **Database:** **Exposed** (Kotlin SQL library) with **PostgreSQL**.
-- **Deployment:** **Docker** on a local server.
-- **Networking:** **Tailscale** for secure remote access.
+- **Deployment:** **Docker** on a local server via **Cloudflare Tunnel**.
 - **Migration:** **Notion API** for importing historical data (2013-present).
 
 ## Implementation Phases
@@ -33,7 +32,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] Implement a shared HTTP client using `Ktor Client` in the `common` module for API consumption.
     - [x] Set up a Dependency Injection framework (e.g., Koin) for the KMP modules.
     - [x] Establish a cross-platform architectural pattern using standard **ViewModels** with **StateFlow** for state management.
-    - [ ] Configure Multiplatform Navigation (e.g., Jetbrains Navigation Compose or Voyager).
+    - [x] Configure Multiplatform Navigation (e.g., Jetbrains Navigation Compose).
 
 ### Phase 2: Feature - Visualize Outgoings (COMPLETED)
 - [x] **Backend (API & Logic):**
@@ -51,45 +50,28 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - [x] **Mobile-Optimized Dashboard:** Create a responsive, read-only variant of the dashboard tailored for mobile screens, highlighting balance and bucket statuses.
 
 ### Phase 3: Local Validation & Manual Testing (COMPLETED)
-- [x] **Database Spining:** Run PostgreSQL locally and verify connectivity. (Installed natively via Homebrew)
+- [x] **Database Spining:** Run PostgreSQL locally and verify connectivity.
 - [x] **Backend Launch:** Start the Ktor server locally and test `/health` and `/api/periods` via `curl` or Postman.
 - [x] **Data Migration Run:** Trigger the `/api/migrate` endpoint manually to seed the local database with Notion data.
 - [x] **Web App Launch:** Run the Wasm version of the app in the browser and verify it displays the imported data.
 - [x] **UI Polish & Iteration:** Refine the appearance and layout of the web application based on user feedback.
 
-### Phase 4: Refinement & Local Deployment
+### Phase 4: Refinement & Local Deployment (COMPLETED)
 - [x] **Database Migrations:** Replace `SchemaUtils.create` with a robust migration tool like **Flyway** for production readiness.
 - [x] **Testing:** 
     - Implement `Ktor Server` Application tests for the API endpoints.
     - Write unit tests for the 50/30/20 Calculation Engine and DTO mappings in `common`.
 - [x] **Local Server Deployment:** Refine the Docker setup, potentially introducing an Nginx/Caddy reverse proxy, and deploy to the home server.
-- [ ] **Cloudflare Tunnel Integration:** Replaced Tailscale with `cloudflared` to provide secure, public HTTPS access via a custom domain without requiring client-side apps. (Needs user to add `CLOUDFLARE_TUNNEL_TOKEN` to .env)
+- [x] **Cloudflare Tunnel Integration:** Replaced Tailscale with `cloudflared` to provide secure, public HTTPS access via a custom domain without requiring client-side apps.
 - [x] **CI/CD:** Setup basic GitHub Actions workflows to build the KMP project and run tests on push.
 
-### Phase 5: Feature - Emergency Budget
-- [ ] **Shared Logic:** Introduce a calculation module in `common` that analyzes 3-6 months of historical `totalNeeds` to determine target emergency fund requirements.
-- [ ] **Backend:** Expose `GET /api/emergency-fund` to deliver progress metrics.
-- [ ] **UI:** Build a gauge/progress tracker component on Web and Android to visualize current savings against the dynamically calculated target.
-
-### Phase 6: Feature - Bills & Subscriptions
-- [ ] **Data Model:** Add `Subscription` and `RecurringBill` entities.
-- [ ] **Backend:** Implement scheduling logic or date-checks to flag upcoming payments within the current `SpendingPeriod`.
-- [ ] **UI:** Create a calendar or timeline view showing due dates and estimated remaining discretionary income.
-
-### Phase 7: Feature - Investments Overview
-- [ ] **Data Model:** Create schemas for portfolios, asset allocations, and historical performance snapshots.
-- [ ] **Backend:** Endpoints to manually record end-of-month portfolio values.
-- [ ] **UI:** Line charts mapping total net worth growth over time across both Web and Android.
-
-### Phase 8: Feature - Pension Management
-- [ ] **Data Model:** Add `PensionContribution` and `RetirementGoal` entities.
-- [ ] **Calculations:** Shared projections based on current contributions, expected growth rates, and retirement age.
-- [ ] **UI:** Retirement scenario sliders and calculators.
-
-### Phase 9: Feature - Salary Sorter
-- [ ] **Rule Engine:** Define configurable rules on the backend (e.g., "Send X% to Savings, Y% to specific Monzo pot").
-- [ ] **UI:** Interactive flow to review and execute (or just copy instructions for) payday allocations.
+### Future Phases (Independent Plans)
+- [ ] **Phase 5:** [Emergency Budget](./PHASE_5_EMERGENCY_BUDGET.md)
+- [ ] **Phase 6:** [Bills & Subscriptions](./PHASE_6_BILLS_SUBSCRIPTIONS.md)
+- [ ] **Phase 7:** [Investments Overview](./PHASE_7_INVESTMENTS.md)
+- [ ] **Phase 8:** [Pension Management](./PHASE_8_PENSION.md)
+- [ ] **Phase 9:** [Salary Sorter](./PHASE_9_SALARY_SORTER.md)
 
 ## Next Steps
 1.  **UI Iteration:** Improve the layout, typography, and spacing of the Web App.
-2.  **Android App Launch:** Run the Android app on an emulator/device and verify connectivity to the local backend (using `10.0.2.2`).
+2.  **Android App Launch:** Run the Android app on an emulator/device and verify connectivity to the local backend.
