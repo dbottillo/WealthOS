@@ -63,7 +63,7 @@ WealthOS is a personal wealth management tool designed to help users visualize a
     - Implement `Ktor Server` Application tests for the API endpoints.
     - Write unit tests for the 50/30/20 Calculation Engine and DTO mappings in `common`.
 - [x] **Local Server Deployment:** Refine the Docker setup, potentially introducing an Nginx/Caddy reverse proxy, and deploy to the home server.
-- [ ] **Tailscale Integration:** Expose the internal Docker network securely using a Tailscale subnet router or direct container integration.
+- [ ] **Cloudflare Tunnel Integration:** Replaced Tailscale with `cloudflared` to provide secure, public HTTPS access via a custom domain without requiring client-side apps. (Needs user to add `CLOUDFLARE_TUNNEL_TOKEN` to .env)
 - [x] **CI/CD:** Setup basic GitHub Actions workflows to build the KMP project and run tests on push.
 
 ### Phase 5: Feature - Emergency Budget

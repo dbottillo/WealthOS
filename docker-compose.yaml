@@ -38,5 +38,15 @@ services:
       server:
         condition: service_started
 
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel run
+    depends_on:
+      web:
+        condition: service_started
+
 volumes:
   db-data:
