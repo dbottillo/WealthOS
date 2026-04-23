@@ -71,48 +71,51 @@ To run integration tests for the Ktor REST API. These tests use an **in-memory H
 ## Notion Sync
 Once the app is running, click the **"Sync Notion"** button in the Overview tab to import your historical data into the local PostgreSQL instance.
 
-## Deployment (Docker & CI/CD)
-The project is configured with GitHub Actions to automatically build and push Docker images to the GitHub Container Registry (GHCR) on every push to `main`.
+## Production Deployment
 
-### 1. Server Prerequisites
-- **Docker** and **Docker Compose** installed.
-- (If your repo is private) A GitHub **Personal Access Token (PAT)** with `read:packages` scope.
+WealthOS is designed to be hosted on a home server (e.g., Ubuntu, Raspberry Pi) and exposed securely via **Cloudflare Tunnels**.
 
-### 2. Initial Setup on Server
-You do **not** need the source code on your server. Follow these steps:
+### Architecture: Cloudflare Tunnel
+Instead of traditional port forwarding or VPNs, WealthOS uses a `cloudflared` sidecar container. 
+- **Security:** No open ports on your home router. 
+- **Privacy:** Your home IP address is never exposed to the internet.
+- **HTTPS:** Cloudflare automatically manages SSL/TLS certificates for your custom domain.
+- **Access:** The tunnel creates an outbound-only connection to Cloudflare's edge, which then proxies traffic to the `web` container.
 
-1. **Create a directory** for the app:
+### Deployment Steps (on Server)
+
+1. **Prerequisites:**
+   - Docker & Docker Compose installed.
+   - A domain managed by Cloudflare with a **Tunnel Token** generated in the Zero Trust dashboard.
+
+2. **Setup Folder:**
    ```bash
    mkdir wealthos && cd wealthos
-   ```
-2. **Download the configuration**:
-   ```bash
    curl -O https://raw.githubusercontent.com/dbottillo/WealthOS/main/docker-compose.yaml
    ```
-3. **Create a `.env` file**:
-   ```bash
-   nano .env
-   ```
-   Paste and customize:
+
+3. **Configure Environment:**
+   Create a `.env` file with the following variables:
    ```env
-   POSTGRES_PASSWORD=choose_a_db_password
-   JDBC_DATABASE_PASSWORD=choose_a_db_password
+   # Database
+   POSTGRES_PASSWORD=your_secure_password
+   JDBC_DATABASE_PASSWORD=your_secure_password
+
+   # Notion
    NOTION_API_KEY=your_secret_notion_key
+
+   # Networking
+   CLOUDFLARE_TUNNEL_TOKEN=your_token_from_cloudflare_dashboard
+   ALLOWED_HOST=https://wealthos.bottillo.com
    ```
-4. **Log in to GitHub Registry** (Only if repo is Private):
+
+4. **Launch:**
    ```bash
-   docker login ghcr.io -u YOUR_GITHUB_USERNAME
+   docker compose up -d
    ```
-   *Use your PAT as the password.*
 
-### 3. Launch or Update
-To start the app for the first time, or to update to the latest version after a GitHub Action build finishes:
-```bash
-docker compose pull
-docker compose up -d
-```
-The app will be available on port **80**.
-
+## Security & Authentication
+Since the app is exposed to the internet, it is **highly recommended** to use **Cloudflare Access** (Zero Trust) to protect the `wealthos` subdomain. This allows you to restrict access to specific email addresses (using One-Time PINs or Google/GitHub login) without modifying the application code.
 
 ## Project Structure
 - `/common`: Shared KMP module (Models, Repository, API Client).
