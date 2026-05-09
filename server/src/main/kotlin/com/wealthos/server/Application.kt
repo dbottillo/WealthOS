@@ -72,11 +72,13 @@ fun Application.module(repository: SpendingPeriodRepository) {
             println("Migration triggered. API Key present: ${apiKey.isNotEmpty()}, Database ID: $databaseId")
             
             if (apiKey.isEmpty()) {
+                println("ERROR: Notion API key is missing")
                 call.respond(io.ktor.http.HttpStatusCode.InternalServerError, "Notion API key not set")
                 return@post
             }
             try {
                 NotionMigrationService(apiKey, databaseId, repository).migrate()
+                println("Migration successful")
                 call.respond(io.ktor.http.HttpStatusCode.OK, "Migration successful")
             } catch (e: Exception) {
                 println("ERROR: Migration failed: ${e.message}")
@@ -90,7 +92,9 @@ fun Application.module(repository: SpendingPeriodRepository) {
 fun Route.apiRoutes(repository: SpendingPeriodRepository) {
     route("/api/periods") {
         get {
-            call.respond(repository.findAll().map { it.toDto() })
+            val periods = repository.findAll()
+            println("GET /api/periods: Found ${periods.size} periods")
+            call.respond(periods.map { it.toDto() })
         }
         get("/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()

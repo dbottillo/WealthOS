@@ -8,10 +8,11 @@ import kotlinx.browser.window
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     val hostname = window.location.hostname
+    val origin = window.location.origin
     val baseUrl = if (hostname == "localhost" || hostname == "127.0.0.1") {
         "http://localhost:8080"
     } else {
-        "" // Relative path for production
+        origin // Use the same origin for production (e.g., https://wealthos.bottillo.com)
     }
 
     initKoin(baseUrl = baseUrl) {
