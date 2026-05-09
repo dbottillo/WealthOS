@@ -32,7 +32,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.abs
 
 enum class Screen {
-    List, Add, Analytics
+    List, Add, Analytics, Categories
 }
 
 data class ColumnDef(val title: String, val width: androidx.compose.ui.unit.Dp)
@@ -61,9 +61,14 @@ fun App() {
                 Screen.List -> PeriodListScreen(
                     viewModel = viewModel,
                     onNavigateToAdd = { currentScreen = Screen.Add },
-                    onNavigateToAnalytics = { currentScreen = Screen.Analytics }
+                    onNavigateToAnalytics = { currentScreen = Screen.Analytics },
+                    onNavigateToCategories = { currentScreen = Screen.Categories }
                 )
                 Screen.Add -> AddPeriodScreen(
+                    viewModel = viewModel,
+                    onBack = { currentScreen = Screen.List }
+                )
+                Screen.Categories -> CategorySettingsScreen(
                     viewModel = viewModel,
                     onBack = { currentScreen = Screen.List }
                 )
@@ -93,7 +98,8 @@ fun App() {
 fun PeriodListScreen(
     viewModel: SpendingPeriodViewModel,
     onNavigateToAdd: () -> Unit,
-    onNavigateToAnalytics: () -> Unit
+    onNavigateToAnalytics: () -> Unit,
+    onNavigateToCategories: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     var selectedPeriod by remember { mutableStateOf<SpendingPeriodDto?>(null) }
@@ -197,6 +203,16 @@ fun PeriodListScreen(
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text("Sync Notion", style = MaterialTheme.typography.labelLarge)
                                 }
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                TextButton(
+                                    onClick = onNavigateToCategories
+                                ) {
+                                    Icon(Icons.Default.Build, contentDescription = null, modifier = Modifier.size(14.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Manage Categories", style = MaterialTheme.typography.labelLarge)
+                                }
                             }
 
                             LazyColumn(
@@ -264,40 +280,21 @@ fun TrendsSection(periods: List<SpendingPeriodDto>) {
 
         TrendRow("Total Spending", currentThree.map { it.totalSpending }.average(), previousThree.map { it.totalSpending }.average(), invert = true)
         
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Needs", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-        TrendRow("Mortgage", currentThree.map { it.mortgage }.average(), previousThree.map { it.mortgage }.average(), invert = true)
-        TrendRow("Bills", currentThree.map { it.bills }.average(), previousThree.map { it.bills }.average(), invert = true)
-        TrendRow("Groceries", currentThree.map { it.groceries }.average(), previousThree.map { it.groceries }.average(), invert = true)
-        TrendRow("Transport", currentThree.map { it.transport }.average(), previousThree.map { it.transport }.average(), invert = true)
-        TrendRow("Personal Care", currentThree.map { it.personalCare }.average(), previousThree.map { it.personalCare }.average(), invert = true)
-        TrendRow("Dentist", currentThree.map { it.dentist }.average(), previousThree.map { it.dentist }.average(), invert = true)
-        TrendRow("Expenses", currentThree.map { it.expenses }.average(), previousThree.map { it.expenses }.average(), invert = true)
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Wants", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-        TrendRow("Eating Out", currentThree.map { it.eatingOut }.average(), previousThree.map { it.eatingOut }.average(), invert = true)
-        TrendRow("Shopping", currentThree.map { it.shopping }.average(), previousThree.map { it.shopping }.average(), invert = true)
-        TrendRow("Entertainment", currentThree.map { it.entertainment }.average(), previousThree.map { it.entertainment }.average(), invert = true)
-        TrendRow("Books", currentThree.map { it.books }.average(), previousThree.map { it.books }.average(), invert = true)
-        TrendRow("Clothing", currentThree.map { it.clothing }.average(), previousThree.map { it.clothing }.average(), invert = true)
-        TrendRow("Gifts", currentThree.map { it.gifts }.average(), previousThree.map { it.gifts }.average(), invert = true)
-        TrendRow("Tech", currentThree.map { it.tech }.average(), previousThree.map { it.tech }.average(), invert = true)
-        TrendRow("Drinks", currentThree.map { it.drinks }.average(), previousThree.map { it.drinks }.average(), invert = true)
-        TrendRow("Holidays", currentThree.map { it.holidays }.average(), previousThree.map { it.holidays }.average(), invert = true)
-        TrendRow("Lego", currentThree.map { it.lego }.average(), previousThree.map { it.lego }.average(), invert = true)
-        TrendRow("Gaming", currentThree.map { it.gaming }.average(), previousThree.map { it.gaming }.average(), invert = true)
-        TrendRow("Comics", currentThree.map { it.comics }.average(), previousThree.map { it.comics }.average(), invert = true)
-        TrendRow("Psychotherapy", currentThree.map { it.psychotherapy }.average(), previousThree.map { it.psychotherapy }.average(), invert = true)
-        TrendRow("Gym", currentThree.map { it.gym }.average(), previousThree.map { it.gym }.average(), invert = true)
-        TrendRow("Cycling", currentThree.map { it.cycling }.average(), previousThree.map { it.cycling }.average(), invert = true)
-        TrendRow("Culture", currentThree.map { it.culture }.average(), previousThree.map { it.culture }.average(), invert = true)
-        TrendRow("Parents", currentThree.map { it.parents }.average(), previousThree.map { it.parents }.average(), invert = true)
-
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Savings & Investment", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-        TrendRow("ISA/Investments", currentThree.map { it.investment }.average(), previousThree.map { it.investment }.average())
-        TrendRow("SIPP", currentThree.map { it.sipp }.average(), previousThree.map { it.sipp }.average())
+        val bucketOrder = listOf("INCOME", "NEED", "WANT", "SAVING", "UNCATEGORIZED")
+        val allEntries = periods.flatMap { it.entries }
+        
+        bucketOrder.forEach { bucket ->
+            val categoryNamesInBucket = allEntries.filter { it.bucket == bucket }.map { it.categoryName }.distinct()
+            if (categoryNamesInBucket.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(bucket, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                categoryNamesInBucket.forEach { name ->
+                    val currentAvg = currentThree.map { p -> p.entries.find { it.categoryName == name }?.amount ?: 0.0 }.average()
+                    val previousAvg = previousThree.map { p -> p.entries.find { it.categoryName == name }?.amount ?: 0.0 }.average()
+                    TrendRow(name, currentAvg, previousAvg, invert = bucket != "INCOME")
+                }
+            }
+        }
     }
 }
 
@@ -348,40 +345,19 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
     val stickyColumnWidth = 140.dp
     val columnWidth = 90.dp
     
-    val scrollableColumns = listOf(
+    val allCategoryNames = periods.flatMap { it.entries }.map { it.categoryName }.distinct()
+    val scrollableColumns = mutableListOf(
         ColumnDef("Money In", columnWidth),
         ColumnDef("Money Out", columnWidth),
         ColumnDef("Balance", columnWidth),
-        ColumnDef("Investments", columnWidth),
-        ColumnDef("SIPP", columnWidth),
-        ColumnDef("Spending", columnWidth),
-        ColumnDef("Mortgage", columnWidth),
-        ColumnDef("Bills", columnWidth),
-        ColumnDef("Groceries", columnWidth),
-        ColumnDef("Eating Out", columnWidth),
-        ColumnDef("Shopping", columnWidth),
-        ColumnDef("Entertain.", columnWidth),
-        ColumnDef("Books", columnWidth),
-        ColumnDef("Clothing", columnWidth),
-        ColumnDef("Gifts", columnWidth),
-        ColumnDef("Tech", columnWidth),
-        ColumnDef("Drinks", columnWidth),
-        ColumnDef("Holidays", columnWidth),
-        ColumnDef("Lego", columnWidth),
-        ColumnDef("Gaming", columnWidth),
-        ColumnDef("Comics", columnWidth),
-        ColumnDef("Psychotherapy", columnWidth),
-        ColumnDef("Gym", columnWidth),
-        ColumnDef("Cycling", columnWidth),
-        ColumnDef("Culture", columnWidth),
-        ColumnDef("Parents", columnWidth),
-        ColumnDef("Personal Care", columnWidth),
-        ColumnDef("Dentist", columnWidth),
-        ColumnDef("Expenses", columnWidth),
-        ColumnDef("% Needs", 80.dp),
-        ColumnDef("% Wants", 80.dp),
-        ColumnDef("% Savings", 80.dp)
+        ColumnDef("Spending", columnWidth)
     )
+    allCategoryNames.forEach { name ->
+        scrollableColumns.add(ColumnDef(name, columnWidth))
+    }
+    scrollableColumns.add(ColumnDef("% Needs", 80.dp))
+    scrollableColumns.add(ColumnDef("% Wants", 80.dp))
+    scrollableColumns.add(ColumnDef("% Savings", 80.dp))
 
     val dividerColor = Color.LightGray.copy(alpha = 0.4f)
     val purpleHeader = Color(0xFFF3E5F5)
@@ -402,9 +378,16 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
                 scrollableColumns.forEach { col ->
                     val bgColor = when (col.title) {
                         "Money In", "Money Out", "Balance" -> purpleHeader
-                        "Investments", "SIPP" -> yellowHeader
                         "% Needs", "% Wants", "% Savings" -> greenHeader
-                        else -> blueHeader
+                        "Spending" -> blueHeader
+                        else -> {
+                            val bucket = periods.flatMap { it.entries }.find { it.categoryName == col.title }?.bucket
+                            when (bucket) {
+                                "INCOME" -> purpleHeader
+                                "SAVING" -> yellowHeader
+                                else -> blueHeader
+                            }
+                        }
                     }
                     TableCell(text = col.title, width = col.width, isHeader = true, bgColor = bgColor)
                     VerticalDivider(color = dividerColor)
@@ -451,9 +434,16 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
                                 
                                 val bgColor = when (col.title) {
                                     "Money In", "Money Out", "Balance" -> purpleCell
-                                    "Investments", "SIPP" -> yellowCell
                                     "% Needs", "% Wants", "% Savings" -> greenCell
-                                    else -> blueCell
+                                    "Spending" -> blueCell
+                                    else -> {
+                                        val bucket = period.entries.find { it.categoryName == col.title }?.bucket
+                                        when (bucket) {
+                                            "INCOME" -> purpleCell
+                                            "SAVING" -> yellowCell
+                                            else -> blueCell
+                                        }
+                                    }
                                 }
                                 
                                 TableCell(text = value, width = col.width, color = textColor, bgColor = bgColor)
@@ -498,36 +488,14 @@ private fun getCellValue(period: SpendingPeriodDto, title: String): String {
         "Money In" -> "£${period.totalIncome.toInt()}"
         "Money Out" -> "£${period.totalSpending.toInt()}"
         "Balance" -> "£${period.balance.toInt()}"
-        "Investments" -> "£${period.investment.toInt()}"
-        "SIPP" -> "£${period.sipp.toInt()}"
         "Spending" -> "£${(period.totalNeeds + period.totalWants).toInt()}"
-        "Mortgage" -> "£${period.mortgage.toInt()}"
-        "Bills" -> "£${period.bills.toInt()}"
-        "Groceries" -> "£${period.groceries.toInt()}"
-        "Eating Out" -> "£${period.eatingOut.toInt()}"
-        "Shopping" -> "£${period.shopping.toInt()}"
-        "Entertain." -> "£${period.entertainment.toInt()}"
-        "Books" -> "£${period.books.toInt()}"
-        "Clothing" -> "£${period.clothing.toInt()}"
-        "Gifts" -> "£${period.gifts.toInt()}"
-        "Tech" -> "£${period.tech.toInt()}"
-        "Drinks" -> "£${period.drinks.toInt()}"
-        "Holidays" -> "£${period.holidays.toInt()}"
-        "Lego" -> "£${period.lego.toInt()}"
-        "Gaming" -> "£${period.gaming.toInt()}"
-        "Comics" -> "£${period.comics.toInt()}"
-        "Psychotherapy" -> "£${period.psychotherapy.toInt()}"
-        "Gym" -> "£${period.gym.toInt()}"
-        "Cycling" -> "£${period.cycling.toInt()}"
-        "Culture" -> "£${period.culture.toInt()}"
-        "Parents" -> "£${period.parents.toInt()}"
-        "Personal Care" -> "£${period.personalCare.toInt()}"
-        "Dentist" -> "£${period.dentist.toInt()}"
-        "Expenses" -> "£${period.expenses.toInt()}"
         "% Needs" -> "${(period.needsPercentage * 100).toInt()}%"
         "% Wants" -> "${(period.wantsPercentage * 100).toInt()}%"
         "% Savings" -> "${(period.savingsPercentage * 100).toInt()}%"
-        else -> ""
+        else -> {
+            val amount = period.entries.find { it.categoryName == title }?.amount
+            if (amount != null) "£${amount.toInt()}" else ""
+        }
     }
 }
 
@@ -588,47 +556,15 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
                     "Savings" to "£${period.totalSavings.toInt()} (${(period.savingsPercentage * 100).toInt()}%)"
                 ))
 
-                DetailSection("Income Details", listOf(
-                    "Salary" to "£${period.salary.toInt()}",
-                    "Other Income" to "£${period.otherIncome.toInt()}",
-                    "Partner Contributions" to "£${period.partnerContributions.toInt()}"
-                ))
+                val groupedEntries = period.entries.groupBy { it.bucket }
+                val bucketOrder = listOf("INCOME", "NEED", "WANT", "SAVING", "UNCATEGORIZED")
 
-                DetailSection("Needs Breakdown", listOf(
-                    "Mortgage" to "£${period.mortgage.toInt()}",
-                    "Bills" to "£${period.bills.toInt()}",
-                    "Groceries" to "£${period.groceries.toInt()}",
-                    "Transport" to "£${period.transport.toInt()}",
-                    "Personal Care" to "£${period.personalCare.toInt()}",
-                    "Dentist" to "£${period.dentist.toInt()}",
-                    "Expenses" to "£${period.expenses.toInt()}"
-                ))
-
-                DetailSection("Wants Breakdown", listOf(
-                    "Eating Out" to "£${period.eatingOut.toInt()}",
-                    "Shopping" to "£${period.shopping.toInt()}",
-                    "Entertainment" to "£${period.entertainment.toInt()}",
-                    "Books" to "£${period.books.toInt()}",
-                    "Clothing" to "£${period.clothing.toInt()}",
-                    "Gifts" to "£${period.gifts.toInt()}",
-                    "Tech" to "£${period.tech.toInt()}",
-                    "Drinks" to "£${period.drinks.toInt()}",
-                    "Holidays" to "£${period.holidays.toInt()}",
-                    "Lego" to "£${period.lego.toInt()}",
-                    "Gaming" to "£${period.gaming.toInt()}",
-                    "Comics" to "£${period.comics.toInt()}",
-                    "Psychotherapy" to "£${period.psychotherapy.toInt()}",
-                    "Gym" to "£${period.gym.toInt()}",
-                    "Cycling" to "£${period.cycling.toInt()}",
-                    "Culture" to "£${period.culture.toInt()}",
-                    "Parents" to "£${period.parents.toInt()}"
-                ))
-
-                DetailSection("Savings & Investments", listOf(
-                    "Direct Savings" to "£${period.savings.toInt()}",
-                    "ISA/Investments" to "£${period.investment.toInt()}",
-                    "SIPP (Pension)" to "£${period.sipp.toInt()}"
-                ))
+                bucketOrder.forEach { bucket ->
+                    val entriesInBucket = groupedEntries[bucket]
+                    if (!entriesInBucket.isNullOrEmpty()) {
+                        DetailSection(bucket, entriesInBucket.map { it.categoryName to "£${it.amount.toInt()}" })
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(32.dp))
             }
@@ -756,7 +692,6 @@ fun PeriodRow(period: SpendingPeriodDto, onClick: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    InfoChip("Salary", "£${period.salary.toInt()}", purple)
                     InfoChip("In", "£${period.totalIncome.toInt()}", purple)
                     InfoChip("Out", "£${period.totalSpending.toInt()}", purple)
                     InfoChip("Spending", "£${(period.totalNeeds + period.totalWants).toInt()}", purple)

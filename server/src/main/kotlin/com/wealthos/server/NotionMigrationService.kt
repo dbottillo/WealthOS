@@ -1,6 +1,7 @@
 package com.wealthos.server
 
 import com.wealthos.common.SpendingPeriod
+import com.wealthos.common.SpendingEntry
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -54,6 +55,7 @@ class NotionMigrationService(
                     totalProcessed++
                 } catch (e: Exception) {
                     println("Error processing page: ${e.message}")
+                    e.printStackTrace()
                 }
             }
 
@@ -64,11 +66,22 @@ class NotionMigrationService(
     }
 
     private fun mapPageToSpendingPeriod(id: String, properties: JsonObject): SpendingPeriod {
-        fun getNumber(name: String): Double = properties[name]?.jsonObject?.get("number")?.jsonPrimitive?.doubleOrNull ?: 0.0
         fun getTitle(name: String): String = properties[name]?.jsonObject?.get("title")?.jsonArray?.firstOrNull()?.jsonObject?.get("plain_text")?.jsonPrimitive?.content ?: "Unknown"
         fun getDateStart(name: String): String = properties[name]?.jsonObject?.get("date")?.jsonObject?.get("start")?.jsonPrimitive?.content ?: "1970-01-01"
         fun getDateEnd(name: String): String = properties[name]?.jsonObject?.get("date")?.jsonObject?.get("end")?.jsonPrimitive?.content ?: "1970-01-01"
         fun getCreatedTime(name: String): String = properties[name]?.jsonObject?.get("created_time")?.jsonPrimitive?.content ?: "1970-01-01T00:00:00Z"
+
+        val entries = mutableListOf<SpendingEntry>()
+        
+        properties.forEach { (name, value) ->
+            val type = value.jsonObject["type"]?.jsonPrimitive?.content
+            if (type == "number") {
+                val amount = value.jsonObject["number"]?.jsonPrimitive?.doubleOrNull ?: 0.0
+                if (amount != 0.0) {
+                    entries.add(SpendingEntry(categoryName = name, amount = amount))
+                }
+            }
+        }
 
         return SpendingPeriod(
             id = id,
@@ -76,36 +89,7 @@ class NotionMigrationService(
             startDate = getDateStart("Period").toLocalDate(),
             endDate = getDateEnd("Period").toLocalDate(),
             createdAt = getCreatedTime("Created time").toInstant(),
-            salary = getNumber("Salary"),
-            otherIncome = getNumber("Other income"),
-            partnerContributions = getNumber("Fabio contributions"),
-            mortgage = getNumber("Mortgage"),
-            bills = getNumber("Bills"),
-            groceries = getNumber("Groceries"),
-            transport = getNumber("Transport"),
-            personalCare = getNumber("Personal care"),
-            dentist = getNumber("Dentist"),
-            expenses = getNumber("Expenses"),
-            eatingOut = getNumber("Eating out"),
-            shopping = getNumber("Shopping"),
-            entertainment = getNumber("Entertainment"),
-            books = getNumber("Books"),
-            clothing = getNumber("Clothing"),
-            gifts = getNumber("Gifts"),
-            tech = getNumber("Tech"),
-            drinks = getNumber("Drinks"),
-            holidays = getNumber("Holidays"),
-            lego = getNumber("Lego"),
-            gaming = getNumber("Gaming"),
-            comics = getNumber("Comics"),
-            psychotherapy = getNumber("Psycotherapy"),
-            gym = getNumber("Gym"),
-            cycling = getNumber("Cycling"),
-            culture = getNumber("Culture"),
-            parents = getNumber("Parents"),
-            savings = getNumber("Savings"),
-            investment = getNumber("Investment"),
-            sipp = getNumber("SIPP")
+            entries = entries
         )
     }
 }

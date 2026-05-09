@@ -1,61 +1,53 @@
 package com.wealthos.server
 
 import com.wealthos.common.SpendingPeriod
+import com.wealthos.common.SpendingEntry
+import com.wealthos.common.CategoryDto
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import kotlinx.datetime.LocalDate
 
 class SpendingPeriodRepository {
 
-    private fun ResultRow.toSpendingPeriod() = SpendingPeriod(
+    private fun loadEntries(periodId: Int): List<SpendingEntry> {
+        return (PeriodEntries innerJoin Categories)
+            .selectAll().where { PeriodEntries.periodId eq periodId }
+            .map {
+                SpendingEntry(
+                    categoryName = it[Categories.name],
+                    amount = it[PeriodEntries.amount],
+                    bucket = it[Categories.bucket]
+                )
+            }
+    }
+
+    private fun ResultRow.toSpendingPeriod(entries: List<SpendingEntry>) = SpendingPeriod(
         id = this[SpendingPeriods.externalId],
         name = this[SpendingPeriods.name],
         startDate = this[SpendingPeriods.startDate],
         endDate = this[SpendingPeriods.endDate],
         createdAt = this[SpendingPeriods.createdAt],
-        salary = this[SpendingPeriods.salary],
-        otherIncome = this[SpendingPeriods.otherIncome],
-        partnerContributions = this[SpendingPeriods.partnerContributions],
-        mortgage = this[SpendingPeriods.mortgage],
-        bills = this[SpendingPeriods.bills],
-        groceries = this[SpendingPeriods.groceries],
-        transport = this[SpendingPeriods.transport],
-        personalCare = this[SpendingPeriods.personalCare],
-        dentist = this[SpendingPeriods.dentist],
-        expenses = this[SpendingPeriods.expenses],
-        eatingOut = this[SpendingPeriods.eatingOut],
-        shopping = this[SpendingPeriods.shopping],
-        entertainment = this[SpendingPeriods.entertainment],
-        books = this[SpendingPeriods.books],
-        clothing = this[SpendingPeriods.clothing],
-        gifts = this[SpendingPeriods.gifts],
-        tech = this[SpendingPeriods.tech],
-        drinks = this[SpendingPeriods.drinks],
-        holidays = this[SpendingPeriods.holidays],
-        lego = this[SpendingPeriods.lego],
-        gaming = this[SpendingPeriods.gaming],
-        comics = this[SpendingPeriods.comics],
-        psychotherapy = this[SpendingPeriods.psychotherapy],
-        gym = this[SpendingPeriods.gym],
-        cycling = this[SpendingPeriods.cycling],
-        culture = this[SpendingPeriods.culture],
-        parents = this[SpendingPeriods.parents],
-        savings = this[SpendingPeriods.savings],
-        investment = this[SpendingPeriods.investment],
-        sipp = this[SpendingPeriods.sipp]
+        entries = entries
     )
 
     fun findAll(): List<SpendingPeriod> = transaction {
-        SpendingPeriods.selectAll()
+        val periods = SpendingPeriods.selectAll()
             .orderBy(SpendingPeriods.startDate to SortOrder.DESC)
-            .map { it.toSpendingPeriod() }
+            .map { it }
+        
+        periods.map { periodRow ->
+            val entries = loadEntries(periodRow[SpendingPeriods.id])
+            periodRow.toSpendingPeriod(entries)
+        }
     }
 
     fun findById(id: Int): SpendingPeriod? = transaction {
         SpendingPeriods.selectAll().where { SpendingPeriods.id eq id }
-            .map { it.toSpendingPeriod() }
-            .singleOrNull()
+            .map { it }
+            .singleOrNull()?.let { periodRow ->
+                val entries = loadEntries(periodRow[SpendingPeriods.id])
+                periodRow.toSpendingPeriod(entries)
+            }
     }
 
     fun findByExternalId(externalId: String): Int? = transaction {
@@ -76,86 +68,68 @@ class SpendingPeriodRepository {
     }
 
     fun add(period: SpendingPeriod): Int = transaction {
-        SpendingPeriods.insert {
+        val pId = SpendingPeriods.insert {
             it[externalId] = period.id
             it[name] = period.name
             it[startDate] = period.startDate
             it[endDate] = period.endDate
             it[createdAt] = period.createdAt
-            it[salary] = period.salary
-            it[otherIncome] = period.otherIncome
-            it[partnerContributions] = period.partnerContributions
-            it[mortgage] = period.mortgage
-            it[bills] = period.bills
-            it[groceries] = period.groceries
-            it[transport] = period.transport
-            it[personalCare] = period.personalCare
-            it[dentist] = period.dentist
-            it[expenses] = period.expenses
-            it[eatingOut] = period.eatingOut
-            it[shopping] = period.shopping
-            it[entertainment] = period.entertainment
-            it[books] = period.books
-            it[clothing] = period.clothing
-            it[gifts] = period.gifts
-            it[tech] = period.tech
-            it[drinks] = period.drinks
-            it[holidays] = period.holidays
-            it[lego] = period.lego
-            it[gaming] = period.gaming
-            it[comics] = period.comics
-            it[psychotherapy] = period.psychotherapy
-            it[gym] = period.gym
-            it[cycling] = period.cycling
-            it[culture] = period.culture
-            it[parents] = period.parents
-            it[savings] = period.savings
-            it[investment] = period.investment
-            it[sipp] = period.sipp
         }[SpendingPeriods.id]
+        
+        saveEntries(pId, period.entries)
+        pId
     }
 
     fun update(id: Int, period: SpendingPeriod): Boolean = transaction {
-        SpendingPeriods.update({ SpendingPeriods.id eq id }) {
+        val updated = SpendingPeriods.update({ SpendingPeriods.id eq id }) {
             it[externalId] = period.id
             it[name] = period.name
             it[startDate] = period.startDate
             it[endDate] = period.endDate
-            it[salary] = period.salary
-            it[otherIncome] = period.otherIncome
-            it[partnerContributions] = period.partnerContributions
-            it[mortgage] = period.mortgage
-            it[bills] = period.bills
-            it[groceries] = period.groceries
-            it[transport] = period.transport
-            it[personalCare] = period.personalCare
-            it[dentist] = period.dentist
-            it[expenses] = period.expenses
-            it[eatingOut] = period.eatingOut
-            it[shopping] = period.shopping
-            it[entertainment] = period.entertainment
-            it[books] = period.books
-            it[clothing] = period.clothing
-            it[gifts] = period.gifts
-            it[tech] = period.tech
-            it[drinks] = period.drinks
-            it[holidays] = period.holidays
-            it[lego] = period.lego
-            it[gaming] = period.gaming
-            it[comics] = period.comics
-            it[psychotherapy] = period.psychotherapy
-            it[gym] = period.gym
-            it[cycling] = period.cycling
-            it[culture] = period.culture
-            it[parents] = period.parents
-            it[savings] = period.savings
-            it[investment] = period.investment
-            it[sipp] = period.sipp
         } > 0
+        
+        if (updated) {
+            PeriodEntries.deleteWhere { periodId eq id }
+            saveEntries(id, period.entries)
+        }
+        updated
+    }
+
+    private fun saveEntries(pId: Int, entries: List<SpendingEntry>) {
+        entries.forEach { entry ->
+            val catId = getOrCreateCategory(entry.categoryName, entry.bucket)
+            PeriodEntries.insert {
+                it[periodId] = pId
+                it[categoryId] = catId
+                it[amount] = entry.amount
+            }
+        }
+    }
+
+    private fun getOrCreateCategory(name: String, bucket: String): Int {
+        val existing = Categories.selectAll().where { Categories.name eq name }
+            .map { it[Categories.id] }
+            .singleOrNull()
+        
+        return existing ?: Categories.insert {
+            it[Categories.name] = name
+            it[Categories.bucket] = bucket
+        }[Categories.id]
     }
 
     fun delete(id: Int): Boolean = transaction {
         SpendingPeriods.deleteWhere { SpendingPeriods.id eq id } > 0
     }
-}
 
+    fun getAllCategories(): List<CategoryDto> = transaction {
+        Categories.selectAll().map {
+            CategoryDto(it[Categories.id], it[Categories.name], it[Categories.bucket])
+        }
+    }
+
+    fun updateCategoryBucket(categoryId: Int, bucket: String): Boolean = transaction {
+        Categories.update({ Categories.id eq categoryId }) {
+            it[Categories.bucket] = bucket
+        } > 0
+    }
+}

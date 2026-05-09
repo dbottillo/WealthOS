@@ -1,6 +1,7 @@
 package com.wealthos.server
 
 import com.wealthos.common.SpendingPeriod
+import com.wealthos.common.SpendingEntry
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -24,13 +25,12 @@ class ApplicationTest {
         // Initialize H2 In-Memory Database for tests
         Database.connect("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;", driver = "org.h2.Driver")
         transaction {
-            SchemaUtils.drop(SpendingPeriods) // Clean start
-            SchemaUtils.create(SpendingPeriods)
+            SchemaUtils.drop(SpendingPeriods, Categories, PeriodEntries) // Clean start
+            SchemaUtils.create(SpendingPeriods, Categories, PeriodEntries)
         }
     }
 
     private fun wealthOsTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication {
-        // We can pass configuration to the test application if needed
         application {
             module(repository)
         }
@@ -64,7 +64,7 @@ class ApplicationTest {
             startDate = LocalDate(2026, 1, 1),
             endDate = LocalDate(2026, 1, 31),
             createdAt = Clock.System.now(),
-            salary = 5000.0
+            entries = listOf(SpendingEntry("Salary", 5000.0, "INCOME"))
         )
 
         // Create
@@ -102,7 +102,8 @@ class ApplicationTest {
             name = "Old Name",
             startDate = LocalDate(2026, 1, 1),
             endDate = LocalDate(2026, 1, 31),
-            createdAt = Clock.System.now()
+            createdAt = Clock.System.now(),
+            entries = emptyList()
         )
 
         val postResponse = client.post("/api/periods") {
@@ -128,5 +129,49 @@ class ApplicationTest {
 
         val getAfterDelete = client.get("/api/periods/$id")
         assertEquals(HttpStatusCode.NotFound, getAfterDelete.status)
+    }
+
+    @Test
+    fun testCategoryManagement() = wealthOsTestApplication {
+        val client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        // Add a period with a new category
+        val period = SpendingPeriod(
+            name = "Category Test",
+            startDate = LocalDate(2026, 1, 1),
+            endDate = LocalDate(2026, 1, 31),
+            createdAt = Clock.System.now(),
+            entries = listOf(SpendingEntry("New Category", 100.0, "UNCATEGORIZED"))
+        )
+        client.post("/api/periods") {
+            contentType(ContentType.Application.Json)
+            setBody(period)
+        }
+
+        // Get categories
+        val categoriesResponse = client.get("/api/categories")
+        assertEquals(HttpStatusCode.OK, categoriesResponse.status)
+        val categories = Json.decodeFromString<JsonArray>(categoriesResponse.bodyAsText())
+        val newCat = categories.find { it.jsonObject["name"]?.jsonPrimitive?.content == "New Category" }
+        assertNotNull(newCat)
+        assertEquals("UNCATEGORIZED", newCat.jsonObject["bucket"]?.jsonPrimitive?.content)
+
+        val catId = newCat.jsonObject["id"]?.jsonPrimitive?.int ?: -1
+
+        // Update bucket
+        val updateResponse = client.put("/api/categories/$catId/bucket") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("bucket" to "WANT"))
+        }
+        assertEquals(HttpStatusCode.OK, updateResponse.status)
+
+        // Verify update
+        val categoriesResponse2 = client.get("/api/categories")
+        val updatedCat = Json.decodeFromString<JsonArray>(categoriesResponse2.bodyAsText()).find { it.jsonObject["id"]?.jsonPrimitive?.int == catId }
+        assertEquals("WANT", updatedCat?.jsonObject["bucket"]?.jsonPrimitive?.content)
     }
 }

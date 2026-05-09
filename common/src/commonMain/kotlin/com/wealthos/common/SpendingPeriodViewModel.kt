@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 
 data class SpendingPeriodState(
     val periods: List<SpendingPeriodDto> = emptyList(),
+    val categories: List<CategoryDto> = emptyList(),
     val healthStatus: String = "Unknown",
     val isLoading: Boolean = false,
     val error: String? = null
@@ -28,6 +29,11 @@ class SpendingPeriodViewModel(
                 _state.value = _state.value.copy(periods = periods)
             }
         }
+        viewModelScope.launch {
+            repository.categories.collect { categories ->
+                _state.value = _state.value.copy(categories = categories)
+            }
+        }
         loadPeriods()
     }
 
@@ -36,6 +42,18 @@ class SpendingPeriodViewModel(
             _state.value = _state.value.copy(isLoading = true)
             try {
                 repository.refresh()
+                _state.value = _state.value.copy(isLoading = false, error = null)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(isLoading = false, error = e.message)
+            }
+        }
+    }
+
+    fun updateCategoryBucket(id: Int, bucket: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true)
+            try {
+                repository.updateCategoryBucket(id, bucket)
                 _state.value = _state.value.copy(isLoading = false, error = null)
             } catch (e: Exception) {
                 _state.value = _state.value.copy(isLoading = false, error = e.message)

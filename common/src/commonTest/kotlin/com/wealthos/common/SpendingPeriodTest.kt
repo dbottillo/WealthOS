@@ -14,22 +14,24 @@ class SpendingPeriodTest {
             startDate = LocalDate(2026, 1, 1),
             endDate = LocalDate(2026, 1, 31),
             createdAt = Clock.System.now(),
-            salary = 5000.0,
-            otherIncome = 200.0,
-            partnerContributions = 300.0,
-            mortgage = 1500.0,
-            bills = 500.0,
-            groceries = 400.0,
-            transport = 100.0,
-            personalCare = 50.0,
-            dentist = 50.0,
-            expenses = 150.0,
-            eatingOut = 300.0,
-            shopping = 400.0,
-            entertainment = 100.0,
-            savings = 1000.0,
-            investment = 500.0,
-            sipp = 500.0
+            entries = listOf(
+                SpendingEntry("Salary", 5000.0, "INCOME"),
+                SpendingEntry("Other income", 200.0, "INCOME"),
+                SpendingEntry("Fabio contributions", 300.0, "INCOME"),
+                SpendingEntry("Mortgage", 1500.0, "NEED"),
+                SpendingEntry("Bills", 500.0, "NEED"),
+                SpendingEntry("Groceries", 400.0, "NEED"),
+                SpendingEntry("Transport", 100.0, "NEED"),
+                SpendingEntry("Personal care", 50.0, "NEED"),
+                SpendingEntry("Dentist", 50.0, "NEED"),
+                SpendingEntry("Expenses", 150.0, "NEED"),
+                SpendingEntry("Eating out", 300.0, "WANT"),
+                SpendingEntry("Shopping", 400.0, "WANT"),
+                SpendingEntry("Entertainment", 100.0, "WANT"),
+                SpendingEntry("Savings", 1000.0, "SAVING"),
+                SpendingEntry("Investment", 500.0, "SAVING"),
+                SpendingEntry("SIPP", 500.0, "SAVING")
+            )
         )
 
         assertEquals(5500.0, period.totalIncome)
@@ -51,7 +53,7 @@ class SpendingPeriodTest {
             startDate = LocalDate(2026, 1, 1),
             endDate = LocalDate(2026, 1, 31),
             createdAt = Clock.System.now(),
-            salary = 0.0
+            entries = listOf(SpendingEntry("Salary", 0.0, "INCOME"))
         )
         
         assertEquals(0.0, period.totalIncome)

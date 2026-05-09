@@ -53,4 +53,15 @@ class WealthOsClient(private val baseUrl: String = "") {
     suspend fun triggerMigration() {
         client.post(getUrl("/api/migrate"))
     }
+
+    suspend fun getCategories(): List<CategoryDto> {
+        return client.get(getUrl("/api/categories")).body()
+    }
+
+    suspend fun updateCategoryBucket(id: Int, bucket: String) {
+        client.put(getUrl("/api/categories/$id/bucket")) {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("bucket" to bucket))
+        }
+    }
 }

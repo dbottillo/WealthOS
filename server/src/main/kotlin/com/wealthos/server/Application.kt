@@ -135,4 +135,23 @@ fun Route.apiRoutes(repository: SpendingPeriodRepository) {
             }
         }
     }
+
+    route("/api/categories") {
+        get {
+            call.respond(repository.getAllCategories())
+        }
+        put("/{id}/bucket") {
+            val id = call.parameters["id"]?.toIntOrNull()
+            val bucket = call.receive<Map<String, String>>()["bucket"]
+            if (id == null || bucket == null) {
+                call.respond(io.ktor.http.HttpStatusCode.BadRequest)
+                return@put
+            }
+            if (repository.updateCategoryBucket(id, bucket)) {
+                call.respond(io.ktor.http.HttpStatusCode.OK)
+            } else {
+                call.respond(io.ktor.http.HttpStatusCode.NotFound)
+            }
+        }
+    }
 }
