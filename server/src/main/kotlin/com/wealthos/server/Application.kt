@@ -43,6 +43,7 @@ fun Application.module(repository: SpendingPeriodRepository) {
         allowMethod(io.ktor.http.HttpMethod.Options)
         allowHeader(io.ktor.http.HttpHeaders.ContentType)
         allowHeader(io.ktor.http.HttpHeaders.Authorization)
+        allowNonSimpleContentTypes = true
     }
 
     // Database initialization
