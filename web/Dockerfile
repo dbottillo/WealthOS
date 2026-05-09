@@ -1,5 +1,5 @@
 # Stage 1: Build the Wasm distribution
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /home/gradle/src
 COPY . .
 RUN ./gradlew :composeApp:wasmJsBrowserDistribution --no-daemon
