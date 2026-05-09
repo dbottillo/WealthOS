@@ -9,6 +9,7 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.json.Json
 import com.wealthos.common.toDto
 
 fun main() {
@@ -55,7 +56,11 @@ fun Application.module(repository: SpendingPeriodRepository) {
     }
 
     install(ContentNegotiation) {
-        json()
+        json(Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+            isLenient = true
+        })
     }
 
     routing {
