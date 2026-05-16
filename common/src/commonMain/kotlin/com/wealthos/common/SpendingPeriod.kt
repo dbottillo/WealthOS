@@ -32,7 +32,7 @@ data class SpendingPeriod(
     
     val balance: Double get() = totalIncome - totalSpending
     
-    val needsPercentage: Double get() = if (totalIncome > 0) totalNeeds / totalIncome else 0.0
-    val wantsPercentage: Double get() = if (totalIncome > 0) totalWants / totalIncome else 0.0
-    val savingsPercentage: Double get() = if (totalIncome > 0) totalSavings / totalIncome else 0.0
+    val needsPercentage: Double get() = if (totalSpending > 0) totalNeeds / totalSpending else 0.0
+    val wantsPercentage: Double get() = if (totalSpending > 0) totalWants / totalSpending else 0.0
+    val savingsPercentage: Double get() = if (totalSpending > 0) totalSavings / totalSpending else 0.0
 }

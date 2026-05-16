@@ -345,27 +345,44 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
     val stickyColumnWidth = 140.dp
     val columnWidth = 90.dp
     
-    val allCategoryNames = periods.flatMap { it.entries }.map { it.categoryName }.distinct()
-    val scrollableColumns = mutableListOf(
-        ColumnDef("Money In", columnWidth),
-        ColumnDef("Money Out", columnWidth),
-        ColumnDef("Balance", columnWidth),
-        ColumnDef("Spending", columnWidth)
-    )
-    allCategoryNames.forEach { name ->
-        scrollableColumns.add(ColumnDef(name, columnWidth))
+    val allEntries = periods.flatMap { it.entries }
+    val categoriesByBucket = allEntries.groupBy { it.bucket }
+    val bucketOrder = listOf("INCOME", "NEED", "WANT", "SAVING", "UNCATEGORIZED")
+    
+    val scrollableColumns = mutableListOf<ColumnDef>()
+    
+    // 1. Summaries (Purple)
+    scrollableColumns.add(ColumnDef("Money In", columnWidth))
+    scrollableColumns.add(ColumnDef("Money Out", columnWidth))
+    scrollableColumns.add(ColumnDef("Balance", columnWidth))
+    
+    // 2. Categories grouped by bucket (including sub-summaries)
+    bucketOrder.forEach { bucket ->
+        if (bucket == "NEED") {
+            scrollableColumns.add(ColumnDef("Spending", columnWidth))
+        }
+        
+        val namesInBucket = categoriesByBucket[bucket]?.map { it.categoryName }?.distinct()?.sorted() ?: emptyList()
+        namesInBucket.forEach { name ->
+            scrollableColumns.add(ColumnDef(name, columnWidth))
+        }
+
+        if (bucket == "SAVING") {
+            scrollableColumns.add(ColumnDef("Total savings", columnWidth))
+            // Percentage Summaries also go here (Green)
+            scrollableColumns.add(ColumnDef("% Needs", 80.dp))
+            scrollableColumns.add(ColumnDef("% Wants", 80.dp))
+            scrollableColumns.add(ColumnDef("% Savings", 80.dp))
+        }
     }
-    scrollableColumns.add(ColumnDef("% Needs", 80.dp))
-    scrollableColumns.add(ColumnDef("% Wants", 80.dp))
-    scrollableColumns.add(ColumnDef("% Savings", 80.dp))
 
     val dividerColor = Color.LightGray.copy(alpha = 0.4f)
     val purpleHeader = Color(0xFFF3E5F5)
     val purpleCell = Color(0xFFFBF7FD)
-    val yellowHeader = Color(0xFFFFF9C4)
-    val yellowCell = Color(0xFFFFFDE7)
     val blueHeader = Color(0xFFE3F2FD)
     val blueCell = Color(0xFFF5F9FF)
+    val yellowHeader = Color(0xFFFFF9C4)
+    val yellowCell = Color(0xFFFFFDE7)
     val greenHeader = Color(0xFFE8F5E9)
     val greenCell = Color(0xFFF1F8F1)
 
@@ -376,16 +393,19 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
             
             Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
                 scrollableColumns.forEach { col ->
-                    val bgColor = when (col.title) {
-                        "Money In", "Money Out", "Balance" -> purpleHeader
-                        "% Needs", "% Wants", "% Savings" -> greenHeader
-                        "Spending" -> blueHeader
+                    val bgColor = when {
+                        col.title in listOf("Money In", "Money Out", "Balance") -> purpleHeader
+                        col.title == "Spending" -> blueHeader
+                        col.title.contains("savings", ignoreCase = true) -> greenHeader
+                        col.title.startsWith("%") -> greenHeader
                         else -> {
-                            val bucket = periods.flatMap { it.entries }.find { it.categoryName == col.title }?.bucket
+                            val bucket = allEntries.find { it.categoryName == col.title }?.bucket
                             when (bucket) {
                                 "INCOME" -> purpleHeader
-                                "SAVING" -> yellowHeader
-                                else -> blueHeader
+                                "NEED" -> blueHeader
+                                "WANT" -> yellowHeader
+                                "SAVING" -> greenHeader
+                                else -> Color.White
                             }
                         }
                     }
@@ -432,16 +452,19 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
                                     if (period.balance >= 0) Color(0xFF2E7D32) else Color(0xFFC62828)
                                 } else Color.Unspecified
                                 
-                                val bgColor = when (col.title) {
-                                    "Money In", "Money Out", "Balance" -> purpleCell
-                                    "% Needs", "% Wants", "% Savings" -> greenCell
-                                    "Spending" -> blueCell
+                                val bgColor = when {
+                                    col.title in listOf("Money In", "Money Out", "Balance") -> purpleCell
+                                    col.title == "Spending" -> blueCell
+                                    col.title.contains("savings", ignoreCase = true) -> greenCell
+                                    col.title.startsWith("%") -> greenCell
                                     else -> {
                                         val bucket = period.entries.find { it.categoryName == col.title }?.bucket
                                         when (bucket) {
                                             "INCOME" -> purpleCell
-                                            "SAVING" -> yellowCell
-                                            else -> blueCell
+                                            "NEED" -> blueCell
+                                            "WANT" -> yellowCell
+                                            "SAVING" -> greenCell
+                                            else -> Color.White
                                         }
                                     }
                                 }
@@ -489,6 +512,7 @@ private fun getCellValue(period: SpendingPeriodDto, title: String): String {
         "Money Out" -> "£${period.totalSpending.toInt()}"
         "Balance" -> "£${period.balance.toInt()}"
         "Spending" -> "£${(period.totalNeeds + period.totalWants).toInt()}"
+        "Total savings" -> "£${period.totalSavings.toInt()}"
         "% Needs" -> "${(period.needsPercentage * 100).toInt()}%"
         "% Wants" -> "${(period.wantsPercentage * 100).toInt()}%"
         "% Savings" -> "${(period.savingsPercentage * 100).toInt()}%"
@@ -562,7 +586,14 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
                 bucketOrder.forEach { bucket ->
                     val entriesInBucket = groupedEntries[bucket]
                     if (!entriesInBucket.isNullOrEmpty()) {
-                        DetailSection(bucket, entriesInBucket.map { it.categoryName to "£${it.amount.toInt()}" })
+                        val total = when (bucket) {
+                            "INCOME" -> "£${period.totalIncome.toInt()}"
+                            "NEED" -> "£${period.totalNeeds.toInt()}"
+                            "WANT" -> "£${period.totalWants.toInt()}"
+                            "SAVING" -> "£${period.totalSavings.toInt()}"
+                            else -> null
+                        }
+                        DetailSection(bucket, entriesInBucket.map { it.categoryName to "£${it.amount.toInt()}" }, total)
                     }
                 }
 
@@ -573,9 +604,18 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
 }
 
 @Composable
-fun DetailSection(title: String, items: List<Pair<String, String>>) {
+fun DetailSection(title: String, items: List<Pair<String, String>>, headerValue: String? = null) {
     Column(modifier = Modifier.padding(bottom = 24.dp)) {
-        Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+            if (headerValue != null) {
+                Text(headerValue, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+            }
+        }
         Spacer(modifier = Modifier.height(12.dp))
         items.forEach { (label, value) ->
             Row(
