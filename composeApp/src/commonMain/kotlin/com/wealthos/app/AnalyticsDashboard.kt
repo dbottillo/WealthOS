@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import com.wealthos.common.SpendingPeriodDto
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsDashboard(periods: List<SpendingPeriodDto>) {
     if (periods.isEmpty()) {
@@ -22,6 +23,8 @@ fun AnalyticsDashboard(periods: List<SpendingPeriodDto>) {
         }
         return
     }
+
+    var selectedTimeRange by remember { mutableStateOf(TimeRange.SIX) }
 
     // Server returns periods sorted by startDate DESC (newest first)
     val latestPeriod = periods.first()
@@ -43,10 +46,26 @@ fun AnalyticsDashboard(periods: List<SpendingPeriodDto>) {
         BucketDistributionChart(latestPeriod)
 
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Spending Trend (Last 6 Periods)", style = MaterialTheme.typography.titleLarge)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+        ) {
+            Text("Spending Trend", style = MaterialTheme.typography.titleLarge)
+            SingleChoiceSegmentedButtonRow {
+                TimeRange.entries.forEachIndexed { index, range ->
+                    SegmentedButton(
+                        selected = selectedTimeRange == range,
+                        onClick = { selectedTimeRange = range },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = TimeRange.entries.size),
+                        label = { Text(range.label) }
+                    )
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(8.dp))
-        // Take the 6 most recent and reverse them to show chronological order (oldest -> newest)
-        SpendingTrendChart(periods.take(6).reversed())
+        // Take the selected number of periods and reverse them to show chronological order
+        SpendingTrendChart(periods.take(selectedTimeRange.months).reversed())
     }
 }
 

@@ -93,6 +93,12 @@ fun App() {
     }
 }
 
+enum class TimeRange(val months: Int, val label: String) {
+    THREE(3, "3m"),
+    SIX(6, "6m"),
+    TWELVE(12, "12m")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PeriodListScreen(
@@ -104,6 +110,7 @@ fun PeriodListScreen(
     val state by viewModel.state.collectAsState()
     var selectedPeriod by remember { mutableStateOf<SpendingPeriodDto?>(null) }
     var selectedTabIndex by remember { mutableStateOf(0) }
+    var selectedTimeRange by remember { mutableStateOf(TimeRange.SIX) }
     val tabs = listOf("Overview", "Detailed")
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -132,17 +139,24 @@ fun PeriodListScreen(
                     .fillMaxSize()
                     .padding(horizontal = 24.dp)
             ) {
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor = Color.Transparent,
-                    divider = {}
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    tabs.forEachIndexed { index, title ->
-                        Tab(
-                            selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index },
-                            text = { Text(title) }
-                        )
+                    PrimaryTabRow(
+                        selectedTabIndex = selectedTabIndex,
+                        containerColor = Color.Transparent,
+                        divider = {},
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        tabs.forEachIndexed { index, title ->
+                            Tab(
+                                selected = selectedTabIndex == index,
+                                onClick = { selectedTabIndex = index },
+                                text = { Text(title) }
+                            )
+                        }
                     }
                 }
 
@@ -171,12 +185,25 @@ fun PeriodListScreen(
                                     .padding(vertical = 16.dp, horizontal = 16.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                                    TimeRange.entries.forEachIndexed { index, range ->
+                                        SegmentedButton(
+                                            selected = selectedTimeRange == range,
+                                            onClick = { selectedTimeRange = range },
+                                            shape = SegmentedButtonDefaults.itemShape(index = index, count = TimeRange.entries.size),
+                                            label = { Text(range.label) }
+                                        )
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(16.dp))
+
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
                                     colors = CardDefaults.cardColors(containerColor = Color.White),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    AveragePieChartSection(state.periods)
+                                    AveragePieChartSection(state.periods, selectedTimeRange)
                                 }
                                 
                                 Spacer(modifier = Modifier.height(24.dp))
@@ -186,7 +213,7 @@ fun PeriodListScreen(
                                     colors = CardDefaults.cardColors(containerColor = Color.White),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    TrendsSection(state.periods)
+                                    TrendsSection(state.periods, selectedTimeRange)
                                 }
                                 
                                 Spacer(modifier = Modifier.height(24.dp))
@@ -260,25 +287,27 @@ fun PeriodListScreen(
 }
 
 @Composable
-fun TrendsSection(periods: List<SpendingPeriodDto>) {
-    // periods is sorted by date DESC (newest first)
-    if (periods.size < 6) {
+fun TrendsSection(periods: List<SpendingPeriodDto>, timeRange: TimeRange) {
+    val windowSize = timeRange.months
+    // We need double the window size to compare two equal periods
+    if (periods.size < windowSize * 2) {
         Column(modifier = Modifier.padding(24.dp)) {
-            Text("6-Month Trends", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+            Text("${timeRange.label} Trends", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Not enough data for 6-month trends.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            Text("Not enough data to compare two ${windowSize}-month periods.", style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
         }
         return
     }
 
-    val currentThree = periods.take(3) // Newest 3
-    val previousThree = periods.drop(3).take(3) // 3 before that
+    val currentWindow = periods.take(windowSize) 
+    val previousWindow = periods.drop(windowSize).take(windowSize)
 
     Column(modifier = Modifier.padding(24.dp)) {
-        Text("6-Month Trends", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text("${timeRange.label} Trends", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Text("Current ${timeRange.label} vs Previous ${timeRange.label}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
         Spacer(modifier = Modifier.height(16.dp))
 
-        TrendRow("Total Spending", currentThree.map { it.totalSpending }.average(), previousThree.map { it.totalSpending }.average(), invert = true)
+        TrendRow("Total Spending", currentWindow.map { it.totalSpending }.average(), previousWindow.map { it.totalSpending }.average(), invert = true)
         
         val bucketOrder = listOf("INCOME", "NEED", "WANT", "SAVING", "UNCATEGORIZED")
         val allEntries = periods.flatMap { it.entries }
@@ -289,9 +318,13 @@ fun TrendsSection(periods: List<SpendingPeriodDto>) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(bucket, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
                 categoryNamesInBucket.forEach { name ->
-                    val currentAvg = currentThree.map { p -> p.entries.find { it.categoryName == name }?.amount ?: 0.0 }.average()
-                    val previousAvg = previousThree.map { p -> p.entries.find { it.categoryName == name }?.amount ?: 0.0 }.average()
-                    TrendRow(name, currentAvg, previousAvg, invert = bucket != "INCOME")
+                    val currentAvg = currentWindow.map { p -> p.entries.find { it.categoryName == name }?.amount ?: 0.0 }.average()
+                    val previousAvg = previousWindow.map { p -> p.entries.find { it.categoryName == name }?.amount ?: 0.0 }.average()
+                    // INVERT logic:
+                    // INCOME & SAVING: Increase is GOOD (green) -> invert = false
+                    // NEED & WANT: Increase is BAD (red) -> invert = true
+                    val shouldInvert = bucket == "NEED" || bucket == "WANT" || bucket == "UNCATEGORIZED"
+                    TrendRow(name, currentAvg, previousAvg, invert = shouldInvert)
                 }
             }
         }
@@ -301,8 +334,19 @@ fun TrendsSection(periods: List<SpendingPeriodDto>) {
 @Composable
 fun TrendRow(label: String, current: Double, previous: Double, invert: Boolean = false, isPercentage: Boolean = false) {
     val diff = current - previous
-    val threshold = 1.0 // Minimal change threshold for £
+    val threshold = 1.0 // Minimal change threshold
     
+    // Handle astronomical percentages when comparing against 0
+    val displayPercent: String? = when {
+        abs(diff) < threshold -> null
+        previous < 1.0 -> "NEW"
+        else -> {
+            val percentChange = ((current - previous) / abs(previous)) * 100
+            val sign = if (percentChange > 0) "+" else ""
+            "$sign${percentChange.toInt()}%"
+        }
+    }
+
     val trendData: Pair<ImageVector, Color> = when {
         abs(diff) < threshold -> Pair(Icons.Default.Menu, Color.Gray)
         diff > 0 -> Pair(Icons.Default.KeyboardArrowUp, if (invert) Color(0xFFC62828) else Color(0xFF2E7D32))
@@ -320,12 +364,26 @@ fun TrendRow(label: String, current: Double, previous: Double, invert: Boolean =
         Row(verticalAlignment = Alignment.CenterVertically) {
             val unit = if (isPercentage) "%" else ""
             val prefix = if (!isPercentage) "£" else ""
+            
+            // Current Value
             Text(
                 text = "$prefix${current.toInt()}$unit",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(end = 4.dp)
+                modifier = Modifier.padding(end = 8.dp)
             )
+
+            // Percentage Change or "NEW"
+            if (displayPercent != null) {
+                Text(
+                    text = displayPercent,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(end = 2.dp)
+                )
+            }
+            
             Icon(
                 imageVector = icon,
                 contentDescription = null,
@@ -631,15 +689,15 @@ fun DetailSection(title: String, items: List<Pair<String, String>>, headerValue:
 }
 
 @Composable
-fun AveragePieChartSection(periods: List<SpendingPeriodDto>) {
-    val lastSixMonths = periods.takeLast(6)
-    if (lastSixMonths.isEmpty()) return
+fun AveragePieChartSection(periods: List<SpendingPeriodDto>, timeRange: TimeRange) {
+    val relevantPeriods = periods.take(timeRange.months)
+    if (relevantPeriods.isEmpty()) return
 
-    val avgNeeds = lastSixMonths.map { it.needsPercentage }.average()
-    val avgWants = lastSixMonths.map { it.wantsPercentage }.average()
-    val avgSavings = lastSixMonths.map { it.savingsPercentage }.average()
+    val avgNeeds = relevantPeriods.map { it.needsPercentage }.average()
+    val avgWants = relevantPeriods.map { it.wantsPercentage }.average()
+    val avgSavings = relevantPeriods.map { it.savingsPercentage }.average()
 
-    val dummyDto = lastSixMonths.last().copy(
+    val dummyDto = relevantPeriods.first().copy(
         needsPercentage = avgNeeds,
         wantsPercentage = avgWants,
         savingsPercentage = avgSavings,
@@ -653,7 +711,7 @@ fun AveragePieChartSection(periods: List<SpendingPeriodDto>) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "6-Month Average",
+            "${timeRange.label} Average",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 24.dp)
