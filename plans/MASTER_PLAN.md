@@ -71,6 +71,8 @@ WealthOS is a personal wealth management tool designed to help users visualize a
 - [ ] **Phase 7:** [Investments Overview](./PHASE_7_INVESTMENTS.md)
 - [ ] **Phase 8:** [Pension Management](./PHASE_8_PENSION.md)
 - [ ] **Phase 9:** [Salary Sorter](./PHASE_9_SALARY_SORTER.md)
+- [x] **macOS App Target:** [macOS App Target](./MACOS_APP_TARGET.md)
+- [ ] **Dark Theme Support:** [Dark Mode](./DARK_MODE.md)
 
 ## Next Steps
 1.  **UI Iteration:** Improve the layout, typography, and spacing of the Web App.
