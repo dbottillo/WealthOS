@@ -3,6 +3,12 @@ name: Build and Push Docker Images
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'composeApp/src/jvmMain/**'
+      - 'composeApp/src/androidMain/**'
+      - '*.md'
+      - 'plans/**'
+      - '.gitignore'
 
 env:
   REGISTRY: ghcr.io
