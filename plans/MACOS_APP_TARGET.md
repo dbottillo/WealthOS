@@ -52,3 +52,20 @@ Generates a native `.dmg` installer package in `composeApp/build/compose/binarie
 ```bash
 ./gradlew :composeApp:packageDmg
 ```
+
+---
+
+## CI/CD Release Workflow (`.github/workflows/build-mac-release.yml`)
+
+We will add a new GitHub Actions workflow to automate building and distributing the macOS app:
+* **Trigger:** Triggered automatically when a release version tag (e.g. `v1.0.1`) is pushed, or manually (`workflow_dispatch`). This ensures we only run resource-intensive macOS builds for formal releases.
+* **Dynamic Versioning:**
+  * In [build.gradle.kts](file:///Users/dbottillo/Development/WealthOS/composeApp/build.gradle.kts), we will read the version from the `APP_VERSION` environment variable (`System.getenv("APP_VERSION") ?: "1.0.0"`), stripping any leading `v`.
+  * The CI workflow will pass the tag name (e.g. `1.0.1`) as `APP_VERSION` to Gradle.
+* **Runner:** Runs on a macOS runner (`macos-latest`).
+* **Artifacts:**
+  * Compiles the `.dmg` installer using `./gradlew :composeApp:packageDmg` with the dynamic version.
+  * Automatically creates a GitHub Release and uploads the `.dmg` (e.g. `WealthOS-1.0.1.dmg`) as a release asset using wildcards.
+
+
+

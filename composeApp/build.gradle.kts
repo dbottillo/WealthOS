@@ -55,6 +55,8 @@ kotlin {
     }
 }
 
+val appVersion = (System.getenv("APP_VERSION") ?: "1.0.0").removePrefix("v")
+
 compose.desktop {
     application {
         mainClass = "MainKt"
@@ -65,7 +67,7 @@ compose.desktop {
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Pkg
             )
             packageName = "WealthOS"
-            packageVersion = "1.0.0"
+            packageVersion = appVersion
             macOS {
                 iconFile.set(project.file("src/jvmMain/resources/icon.icns"))
             }
