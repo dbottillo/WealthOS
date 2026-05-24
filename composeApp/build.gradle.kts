@@ -63,8 +63,7 @@ compose.desktop {
         jvmArgs += listOf("-Dapple.awt.application.appearance=system")
         nativeDistributions {
             targetFormats(
-                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
-                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Pkg
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg
             )
             packageName = "WealthOS"
             packageVersion = appVersion
