@@ -58,15 +58,32 @@ fun App(
     val viewModel: SpendingPeriodViewModel = koinViewModel()
     val state by viewModel.state.collectAsState()
 
-    MaterialTheme(
-        colorScheme = lightColorScheme(
+    val isDark = isSystemInDarkTheme()
+    val colorScheme = if (isDark) {
+        darkColorScheme(
+            primary = Color(0xFFD0BCFF),
+            onPrimary = Color(0xFF381E72),
+            primaryContainer = Color(0xFF4F378B),
+            secondary = Color(0xFFCCC2DC),
+            background = Color(0xFF141218),
+            surface = Color(0xFF1D1B20),
+            onBackground = Color(0xFFE6E1E5),
+            onSurface = Color(0xFFE6E1E5)
+        )
+    } else {
+        lightColorScheme(
             primary = Color(0xFF6750A4),
             onPrimary = Color.White,
             primaryContainer = Color(0xFFEADDFF),
             secondary = Color(0xFF625B71),
-            background = Color(0xFFF6F6F6)
+            background = Color(0xFFF6F6F6),
+            surface = Color.White,
+            onBackground = Color.Black,
+            onSurface = Color.Black
         )
-    ) {
+    }
+
+    MaterialTheme(colorScheme = colorScheme) {
         Surface(
             modifier = Modifier.fillMaxSize().padding(top = topPadding),
             color = MaterialTheme.colorScheme.background
@@ -224,7 +241,7 @@ fun PeriodListScreen(
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     AveragePieChartSection(state.periods, selectedTimeRange)
@@ -234,7 +251,7 @@ fun PeriodListScreen(
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
                                     TrendsSection(state.periods, selectedTimeRange)
@@ -384,7 +401,7 @@ fun TrendRow(label: String, current: Double, previous: Double, invert: Boolean =
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, style = MaterialTheme.typography.bodySmall, color = Color.DarkGray)
+        Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Row(verticalAlignment = Alignment.CenterVertically) {
             val unit = if (isPercentage) "%" else ""
             val prefix = if (!isPercentage) "£" else ""
@@ -458,19 +475,20 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
         }
     }
 
-    val dividerColor = Color.LightGray.copy(alpha = 0.4f)
-    val purpleHeader = Color(0xFFF3E5F5)
-    val purpleCell = Color(0xFFFBF7FD)
-    val blueHeader = Color(0xFFE3F2FD)
-    val blueCell = Color(0xFFF5F9FF)
-    val yellowHeader = Color(0xFFFFF9C4)
-    val yellowCell = Color(0xFFFFFDE7)
-    val greenHeader = Color(0xFFE8F5E9)
-    val greenCell = Color(0xFFF1F8F1)
+    val isDark = isSystemInDarkTheme()
+    val dividerColor = if (isDark) Color(0xFF3B383E) else Color.LightGray.copy(alpha = 0.4f)
+    val purpleHeader = if (isDark) Color(0xFF32283D) else Color(0xFFF3E5F5)
+    val purpleCell = if (isDark) Color(0xFF201A29) else Color(0xFFFBF7FD)
+    val blueHeader = if (isDark) Color(0xFF1E2D3D) else Color(0xFFE3F2FD)
+    val blueCell = if (isDark) Color(0xFF131D29) else Color(0xFFF5F9FF)
+    val yellowHeader = if (isDark) Color(0xFF38331A) else Color(0xFFFFF9C4)
+    val yellowCell = if (isDark) Color(0xFF242010) else Color(0xFFFFFDE7)
+    val greenHeader = if (isDark) Color(0xFF1D3323) else Color(0xFFE8F5E9)
+    val greenCell = if (isDark) Color(0xFF122116) else Color(0xFFF1F8F1)
 
-    Column(modifier = Modifier.fillMaxSize().background(Color.White).border(1.dp, dividerColor)) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface).border(1.dp, dividerColor)) {
         Row(modifier = Modifier.height(IntrinsicSize.Min).background(MaterialTheme.colorScheme.primaryContainer)) {
-            TableCell(text = "Period", width = stickyColumnWidth, isHeader = true, bgColor = Color.White)
+            TableCell(text = "Period", width = stickyColumnWidth, isHeader = true, bgColor = MaterialTheme.colorScheme.surface)
             VerticalDivider(color = dividerColor)
             
             Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
@@ -487,7 +505,7 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
                                 "NEED" -> blueHeader
                                 "WANT" -> yellowHeader
                                 "SAVING" -> greenHeader
-                                else -> Color.White
+                                else -> MaterialTheme.colorScheme.surface
                             }
                         }
                     }
@@ -524,7 +542,7 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
                             .height(IntrinsicSize.Min)
                             .clickable { onRowClick(period) }
                     ) {
-                        TableCell(text = period.name, width = stickyColumnWidth, fontWeight = FontWeight.Bold, bgColor = Color.White)
+                        TableCell(text = period.name, width = stickyColumnWidth, fontWeight = FontWeight.Bold, bgColor = MaterialTheme.colorScheme.surface)
                         VerticalDivider(color = dividerColor)
 
                         Row(modifier = Modifier.horizontalScroll(horizontalScrollState)) {
@@ -546,7 +564,7 @@ fun DetailedTableView(periods: List<SpendingPeriodDto>, onRowClick: (SpendingPer
                                             "NEED" -> blueCell
                                             "WANT" -> yellowCell
                                             "SAVING" -> greenCell
-                                            else -> Color.White
+                                            else -> MaterialTheme.colorScheme.surface
                                         }
                                     }
                                 }
@@ -625,7 +643,7 @@ fun PeriodDetailPanel(period: SpendingPeriodDto, onClose: () -> Unit) {
                 } else false
             }
             .clickable(enabled = false) {},
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 16.dp),
         shape = androidx.compose.ui.graphics.RectangleShape
     ) {
@@ -747,11 +765,12 @@ fun AveragePieChartSection(periods: List<SpendingPeriodDto>, timeRange: TimeRang
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PeriodRow(period: SpendingPeriodDto, onClick: () -> Unit) {
-    val purple = Color(0xFFF3E5F5)
-    val blue = Color(0xFFE3F2FD)
-    val yellow = Color(0xFFFFFDE7)
-    val green = Color(0xFFE8F5E9)
-    val red = Color(0xFFFFEBEE)
+    val isDark = isSystemInDarkTheme()
+    val purple = if (isDark) Color(0xFF32283D) else Color(0xFFF3E5F5)
+    val blue = if (isDark) Color(0xFF1E2D3D) else Color(0xFFE3F2FD)
+    val yellow = if (isDark) Color(0xFF38331A) else Color(0xFFFFFDE7)
+    val green = if (isDark) Color(0xFF1D3323) else Color(0xFFE8F5E9)
+    val red = if (isDark) Color(0xFF4C2727) else Color(0xFFFFEBEE)
     
     val statusColor = when(period.status) {
         "CRITICAL" -> Color(0xFFF44336)
@@ -767,7 +786,7 @@ fun PeriodRow(period: SpendingPeriodDto, onClick: () -> Unit) {
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(modifier = Modifier.height(IntrinsicSize.Min)) {
@@ -829,13 +848,16 @@ fun PeriodRow(period: SpendingPeriodDto, onClick: () -> Unit) {
 
 @Composable
 fun InfoChip(label: String, value: String, bgColor: Color) {
+    val isDark = isSystemInDarkTheme()
     Surface(
         color = bgColor,
         shape = MaterialTheme.shapes.medium,
     ) {
         Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("$label: ", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = Color.DarkGray)
-            Text(value, style = MaterialTheme.typography.labelSmall, color = Color.Black)
+            val textColorLabel = if (isDark) Color.LightGray else Color.DarkGray
+            val textColorValue = if (isDark) Color.White else Color.Black
+            Text("$label: ", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold, color = textColorLabel)
+            Text(value, style = MaterialTheme.typography.labelSmall, color = textColorValue)
         }
     }
 }

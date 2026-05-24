@@ -1,6 +1,7 @@
 package com.wealthos.app
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -71,10 +72,16 @@ fun AnalyticsDashboard(periods: List<SpendingPeriodDto>) {
 
 @Composable
 fun SummaryCards(period: SpendingPeriodDto) {
+    val isDark = isSystemInDarkTheme()
+    val balanceColor = if (isDark) {
+        if (period.balance >= 0) Color(0xFF81C784) else Color(0xFFE57373)
+    } else {
+        if (period.balance >= 0) Color(0xFF4CAF50) else Color(0xFFF44336)
+    }
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         InfoCard("Income", "£${period.totalIncome.toInt()}", MaterialTheme.colorScheme.primary, Modifier.weight(1f))
         InfoCard("Spending", "£${period.totalSpending.toInt()}", MaterialTheme.colorScheme.secondary, Modifier.weight(1f))
-        InfoCard("Balance", "£${period.balance.toInt()}", if (period.balance >= 0) Color(0xFF4CAF50) else Color(0xFFF44336), Modifier.weight(1f))
+        InfoCard("Balance", "£${period.balance.toInt()}", balanceColor, Modifier.weight(1f))
     }
 }
 
@@ -101,19 +108,24 @@ fun BucketDistributionChart(period: SpendingPeriodDto) {
     val wantsAngle = (wants / total) * 360f
     val savingsAngle = (savings / total) * 360f
 
+    val isDark = isSystemInDarkTheme()
+    val needsColor = if (isDark) Color(0xFF90CAF9) else Color(0xFF2196F3)
+    val wantsColor = if (isDark) Color(0xFFFFE082) else Color(0xFFFFC107)
+    val savingsColor = if (isDark) Color(0xFF81C784) else Color(0xFF4CAF50)
+
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
         Canvas(modifier = Modifier.size(150.dp)) {
-            drawArc(Color(0xFF2196F3), 0f, needsAngle, true)
-            drawArc(Color(0xFFFFC107), needsAngle, wantsAngle, true)
-            drawArc(Color(0xFF4CAF50), needsAngle + wantsAngle, savingsAngle, true)
+            drawArc(needsColor, 0f, needsAngle, true)
+            drawArc(wantsColor, needsAngle, wantsAngle, true)
+            drawArc(savingsColor, needsAngle + wantsAngle, savingsAngle, true)
         }
         
         Spacer(modifier = Modifier.width(24.dp))
         
         Column {
-            LegendItem("Needs (50%)", Color(0xFF2196F3), "${(period.needsPercentage * 100).toInt()}%")
-            LegendItem("Wants (30%)", Color(0xFFFFC107), "${(period.wantsPercentage * 100).toInt()}%")
-            LegendItem("Savings (20%)", Color(0xFF4CAF50), "${(period.savingsPercentage * 100).toInt()}%")
+            LegendItem("Needs (50%)", needsColor, "${(period.needsPercentage * 100).toInt()}%")
+            LegendItem("Wants (30%)", wantsColor, "${(period.wantsPercentage * 100).toInt()}%")
+            LegendItem("Savings (20%)", savingsColor, "${(period.savingsPercentage * 100).toInt()}%")
         }
     }
 }
@@ -130,6 +142,7 @@ fun LegendItem(label: String, color: Color, percentage: String) {
 @Composable
 fun SpendingTrendChart(periods: List<SpendingPeriodDto>) {
     val maxSpending = periods.maxOfOrNull { it.totalSpending }?.toFloat() ?: 1f
+    val lineColor = MaterialTheme.colorScheme.primary
     
     Canvas(modifier = Modifier.fillMaxWidth().height(200.dp).padding(top = 16.dp)) {
         val width = size.width
@@ -144,7 +157,7 @@ fun SpendingTrendChart(periods: List<SpendingPeriodDto>) {
 
         for (i in 0 until points.size - 1) {
             drawLine(
-                color = Color(0xFF6200EE),
+                color = lineColor,
                 start = points[i],
                 end = points[i + 1],
                 strokeWidth = 4f
@@ -152,7 +165,7 @@ fun SpendingTrendChart(periods: List<SpendingPeriodDto>) {
         }
         
         points.forEach { point ->
-            drawCircle(Color(0xFF6200EE), radius = 6f, center = point)
+            drawCircle(lineColor, radius = 6f, center = point)
         }
     }
 }
