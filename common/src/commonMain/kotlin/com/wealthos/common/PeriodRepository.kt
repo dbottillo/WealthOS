@@ -12,21 +12,13 @@ class PeriodRepository(private val client: WealthOsClient) {
     val categories: StateFlow<List<CategoryDto>> = _categories.asStateFlow()
 
     suspend fun refresh() {
-        try {
-            val fetchedPeriods = client.getPeriods()
-            _periods.value = fetchedPeriods
-            refreshCategories()
-        } catch (e: Exception) {
-            // Log or handle error
-        }
+        val fetchedPeriods = client.getPeriods()
+        _periods.value = fetchedPeriods
+        refreshCategories()
     }
 
     suspend fun refreshCategories() {
-        try {
-            _categories.value = client.getCategories()
-        } catch (e: Exception) {
-            // Log or handle error
-        }
+        _categories.value = client.getCategories()
     }
 
     suspend fun updateCategoryBucket(id: Int, bucket: String) {

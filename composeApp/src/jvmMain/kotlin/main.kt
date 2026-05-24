@@ -3,6 +3,9 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.MenuBar
 import com.wealthos.app.App
 import com.wealthos.common.initKoin
+import com.wealthos.common.AuthHeadersProvider
+import org.koin.dsl.module
+import com.wealthos.app.DesktopAuthHeadersProvider
 
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
@@ -19,7 +22,9 @@ fun main() {
     application {
         val baseUrl = System.getenv("WEALTHOS_API_URL") ?: "https://wealthos.bottillo.com"
         initKoin(baseUrl = baseUrl) {
-            // Desktop specific config
+            modules(module {
+                single<AuthHeadersProvider> { DesktopAuthHeadersProvider() }
+            })
         }
         Window(onCloseRequest = ::exitApplication, title = "WealthOS") {
             window.rootPane.putClientProperty("apple.awt.fullWindowContent", true)

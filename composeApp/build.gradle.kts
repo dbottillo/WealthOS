@@ -77,7 +77,8 @@ compose.desktop {
 
 tasks.withType<JavaExec>().configureEach {
     if (name == "run") {
-        environment("WEALTHOS_API_URL", "http://localhost:8080")
+        val apiUrl = System.getenv("WEALTHOS_API_URL") ?: "http://localhost:8080"
+        environment("WEALTHOS_API_URL", apiUrl)
     }
 }
 
