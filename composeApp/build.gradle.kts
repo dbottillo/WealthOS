@@ -7,14 +7,14 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(25)
     androidTarget {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
     }
     jvm()
-    @OptIn(org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl::class)
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         binaries.executable()
@@ -45,6 +45,36 @@ kotlin {
                 implementation(libs.androidx.activity.compose)
             }
         }
+        val jvmMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.ktor.client.okhttp)
+                implementation(libs.kotlinx.coroutines.swing)
+            }
+        }
+    }
+}
+
+compose.desktop {
+    application {
+        mainClass = "MainKt"
+        nativeDistributions {
+            targetFormats(
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Dmg,
+                org.jetbrains.compose.desktop.application.dsl.TargetFormat.Pkg
+            )
+            packageName = "WealthOS"
+            packageVersion = "1.0.0"
+            macOS {
+                iconFile.set(project.file("src/jvmMain/resources/icon.icns"))
+            }
+        }
+    }
+}
+
+tasks.withType<JavaExec>().configureEach {
+    if (name == "run") {
+        environment("WEALTHOS_API_URL", "http://localhost:8080")
     }
 }
 

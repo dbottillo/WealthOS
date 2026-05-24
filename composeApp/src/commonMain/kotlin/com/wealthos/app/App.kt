@@ -39,8 +39,22 @@ data class ColumnDef(val title: String, val width: androidx.compose.ui.unit.Dp)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun App() {
-    var currentScreen by remember { mutableStateOf(Screen.List) }
+fun App(
+    showTitle: Boolean = true,
+    topPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    showTopBar: Boolean = true,
+    externalScreen: Screen? = null,
+    onScreenChanged: ((Screen) -> Unit)? = null
+) {
+    var internalScreen by remember { mutableStateOf(Screen.List) }
+    val currentScreen = externalScreen ?: internalScreen
+    val setScreen: (Screen) -> Unit = { screen ->
+        if (externalScreen != null && onScreenChanged != null) {
+            onScreenChanged(screen)
+        } else {
+            internalScreen = screen
+        }
+    }
     val viewModel: SpendingPeriodViewModel = koinViewModel()
     val state by viewModel.state.collectAsState()
 
@@ -54,30 +68,32 @@ fun App() {
         )
     ) {
         Surface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(top = topPadding),
             color = MaterialTheme.colorScheme.background
         ) {
             when (currentScreen) {
                 Screen.List -> PeriodListScreen(
                     viewModel = viewModel,
-                    onNavigateToAdd = { currentScreen = Screen.Add },
-                    onNavigateToAnalytics = { currentScreen = Screen.Analytics },
-                    onNavigateToCategories = { currentScreen = Screen.Categories }
+                    onNavigateToAdd = { setScreen(Screen.Add) },
+                    onNavigateToAnalytics = { setScreen(Screen.Analytics) },
+                    onNavigateToCategories = { setScreen(Screen.Categories) },
+                    showTitle = showTitle,
+                    showTopBar = showTopBar
                 )
                 Screen.Add -> AddPeriodScreen(
                     viewModel = viewModel,
-                    onBack = { currentScreen = Screen.List }
+                    onBack = { setScreen(Screen.List) }
                 )
                 Screen.Categories -> CategorySettingsScreen(
                     viewModel = viewModel,
-                    onBack = { currentScreen = Screen.List }
+                    onBack = { setScreen(Screen.List) }
                 )
                 Screen.Analytics -> Scaffold(
                     topBar = {
                         CenterAlignedTopAppBar(
                             title = { Text("Analytics") },
                             navigationIcon = {
-                                IconButton(onClick = { currentScreen = Screen.List }) {
+                                IconButton(onClick = { setScreen(Screen.List) }) {
                                     Icon(Icons.Default.List, contentDescription = "List")
                                 }
                             }
@@ -105,7 +121,9 @@ fun PeriodListScreen(
     viewModel: SpendingPeriodViewModel,
     onNavigateToAdd: () -> Unit,
     onNavigateToAnalytics: () -> Unit,
-    onNavigateToCategories: () -> Unit
+    onNavigateToCategories: () -> Unit,
+    showTitle: Boolean = true,
+    showTopBar: Boolean = true
 ) {
     val state by viewModel.state.collectAsState()
     var selectedPeriod by remember { mutableStateOf<SpendingPeriodDto?>(null) }
@@ -116,14 +134,20 @@ fun PeriodListScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("WealthOS", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateToAnalytics) {
-                            Icon(Icons.Default.Settings, contentDescription = "Analytics")
+                if (showTopBar) {
+                    CenterAlignedTopAppBar(
+                        title = {
+                            if (showTitle) {
+                                Text("WealthOS", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                            }
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onNavigateToAnalytics) {
+                                Icon(Icons.Default.Settings, contentDescription = "Analytics")
+                            }
                         }
-                    }
-                )
+                    )
+                }
             },
             floatingActionButton = {
                 ExtendedFloatingActionButton(
